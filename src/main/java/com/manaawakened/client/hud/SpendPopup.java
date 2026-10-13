@@ -1,5 +1,6 @@
 package com.manaawakened.client.hud;
 
+import com.manaawakened.core.CompactNumber;
 import java.util.Locale;
 
 /**
@@ -45,9 +46,9 @@ public final class SpendPopup {
         return true;
     }
 
-    /** "-341"; below 10 with one decimal ("-2.5"). */
+    /** "-341"; below 10 with one decimal ("-2.5"); from a million on compact ("-1.23M", the unit from the language file). */
     public static String format(double amount) {
-        return amount < 9.95 ? String.format(Locale.ROOT, "-%.1f", amount) : String.format(Locale.ROOT, "-%,d", Math.round(amount));
+        return amount < 9.95 ? String.format(Locale.ROOT, "-%.1f", amount) : CompactNumber.round(-amount).getString();
     }
 
     /** Where the ghost reaches up to now (a fraction of the bar), never below the bar itself; {@code fraction} once it is gone. */

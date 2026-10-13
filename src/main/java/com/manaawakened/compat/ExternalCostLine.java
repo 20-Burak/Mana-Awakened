@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
- * The line "External spells cost ×34.1 (Iron's / Ars / Mahou)" of the Mana Heart's tooltip and of {@code /mana status}: what the core
+ * The line "External spells cost ×3.41 (Iron's / Ars / Mahou)" of the Mana Heart's tooltip and of {@code /mana status}: what the core
  * pays for one mana of each bridged magic mod at its live capacity, through the same {@link ExternalMagic#costMultiplier} the server
  * charges with. Iron's Spells shows its spells' base cost and cannot be told otherwise, so this line is where the real price is
  * read. Mods with the same printed multiplier share one entry; a mod that is not installed is not listed.
@@ -20,21 +20,25 @@ public final class ExternalCostLine {
     /** The order the mods are listed in. */
     private static final List<String> ORDER = List.of(ExternalMagic.IRONS, ExternalMagic.ARS, ExternalMagic.MAHOU);
 
-    /** One printed multiplier and the mods that pay it. */
-    public record Group(String multiplier, List<String> modIds) {
+    /** One printed multiplier (and the value it was printed from) and the mods that pay it. */
+    public record Group(String multiplier, double value, List<String> modIds) {
     }
 
     private ExternalCostLine() {
     }
 
-    /** Pure: the multipliers of a core of {@code maxMana} for the mods among {@code modIds}, mods with the same printed value together. */
-    public static List<Group> groups(double maxMana, double referencePool, Collection<String> modIds, ToDoubleFunction<String> alpha) {
+    /**
+     * Pure: the multipliers of a core of {@code maxMana} for the mods among {@code modIds} at the cost scale {@code scale}, mods with the
+     * same printed value together.
+     */
+    public static List<Group> groups(double maxMana, double referencePool, double scale, Collection<String> modIds, ToDoubleFunction<String> alpha) {
         List<Group> groups = new ArrayList<>();
         for (String mod : ORDER) {
             if (!modIds.contains(mod)) {
                 continue;
             }
-            String text = ExternalMagic.formatMultiplier(ExternalMagic.costMultiplier(maxMana, referencePool, alpha.applyAsDouble(mod)));
+            double multiplier = ExternalMagic.costMultiplier(maxMana, referencePool, alpha.applyAsDouble(mod), scale);
+            String text = ExternalMagic.formatMultiplier(multiplier);
             Group same = null;
             for (Group group : groups) {
                 if (group.multiplier().equals(text)) {
@@ -46,15 +50,16 @@ public final class ExternalCostLine {
             } else {
                 List<String> mods = new ArrayList<>();
                 mods.add(mod);
-                groups.add(new Group(text, mods));
+                groups.add(new Group(text, multiplier, mods));
             }
         }
         return groups;
     }
 
     /** Pure: the line for these inputs, or {@code null} when none of the mods is among {@code modIds}. */
-    public static Component line(double maxMana, boolean transcendent, double referencePool, Collection<String> modIds, ToDoubleFunction<String> alpha) {
-        List<Group> groups = groups(maxMana, referencePool, modIds, alpha);
+    public static Component line(double maxMana, boolean transcendent, double referencePool, double scale, Collection<String> modIds,
+                                 ToDoubleFunction<String> alpha) {
+        List<Group> groups = groups(maxMana, referencePool, scale, modIds, alpha);
         if (groups.isEmpty()) {
             return null;
         }
@@ -74,7 +79,7 @@ public final class ExternalCostLine {
             if (i > 0) {
                 list.append(", ");
             }
-            list.append(Component.translatable("mana_awakened.external_cost.group", group.multiplier(), names));
+            list.append(Component.translatable("mana_awakened.external_cost.group", ExternalMagic.multiplierText(group.value()), names));
         }
         return Component.translatable("mana_awakened.external_cost", list);
     }
@@ -88,6 +93,7 @@ public final class ExternalCostLine {
         if (mods.isEmpty()) {
             return null;
         }
-        return line(data.maxMana(), data.isTranscendent(), ManaConfig.SERVER.externalReferencePool.get(), mods, ExternalMagic::alpha);
+        return line(data.maxMana(), data.isTranscendent(), ManaConfig.SERVER.externalReferencePool.get(), ManaConfig.SERVER.externalCostScale.get(), mods,
+                ExternalMagic::alpha);
     }
 }

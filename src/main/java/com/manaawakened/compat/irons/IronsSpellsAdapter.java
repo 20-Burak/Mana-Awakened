@@ -6,6 +6,7 @@ import com.manaawakened.compat.ApiProbe.Feature;
 import com.manaawakened.compat.ApiProbe.Symbol;
 import com.manaawakened.compat.MagicAdapter;
 import com.manaawakened.compat.MagicAdapters;
+import com.manaawakened.core.CompactNumber;
 import com.manaawakened.core.ExternalMagic;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.registry.AttachmentRegistries;
@@ -19,7 +20,6 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
@@ -44,6 +44,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * </ul>
  * Iron's own spell wheel, tooltips and inscription table compute a spell's cost on the client from the spell itself, so they keep
  * showing the unscaled cost. This class is only loaded when {@code irons_spellbooks} is present.
+ *
+ * <p>Big cores (audited for 1.0.1): Iron's keeps its mana as a {@code float}, which holds every whole number only up to 16,777,216,
+ * but its {@code max_mana} attribute stops at 1,000,000 and {@code MagicData.setMana} clamps the mana to it. So however big the core,
+ * Iron's sees at most 1,000,000 of it, and every spend it makes inside that is read exactly and charged to the core at the scaled price
+ * (checked at a core of a trillion). Iron's own (hidden) mana bar shows at most that million, not the whole core.
  *
  * <p>Version tolerance (1.0.0): everything used is listed in {@link #FEATURES} and checked once when the adapter starts
  * ({@link ApiProbe}). Each event listener is its own small class, registered only when its feature is on, so a build that lacks one
@@ -173,8 +178,7 @@ public final class IronsSpellsAdapter implements MagicAdapter {
             double cost = spell.getManaCost(event.getSpellLevel()) * ExternalMagic.costMultiplier(data, MOD_ID);
             if (data.mana() + EPSILON < cost) {
                 event.setCanceled(true);
-                player.displayClientMessage(Component.translatable("mana_awakened.integration.not_enough",
-                        String.format(Locale.ROOT, "%,d", (long) Math.ceil(cost))).withStyle(ChatFormatting.RED), true);
+                player.displayClientMessage(Component.translatable("mana_awakened.integration.not_enough", CompactNumber.ceil(cost)).withStyle(ChatFormatting.RED), true);
             }
         }
     }

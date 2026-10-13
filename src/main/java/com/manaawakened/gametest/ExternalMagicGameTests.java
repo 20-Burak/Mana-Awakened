@@ -38,7 +38,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * Other mods' spells on the one shared core (3.4.0): the cost multiplier max(1, (capacity / 100)^alpha), the damage multiplier of the
+ * Other mods' spells on the one shared core (3.4.0): the cost multiplier max(1, scale x (capacity / 100)^alpha) (scale 0.1 since 1.0.1), the damage multiplier of the
  * Circle and purity, and each mod's own API paying exactly cost x multiplier. The mods are reached by reflection only, so the class
  * loads without them; a test of a mod that is not installed passes at once.
  */
@@ -92,28 +92,34 @@ public final class ExternalMagicGameTests {
     @GameTest(template = EMPTY)
     public static void theCostMultiplierFollowsTheFormula(GameTestHelper helper) {
         double reference = ManaConfig.SERVER.externalReferencePool.get();
+        double scale = ManaConfig.SERVER.externalCostScale.get();
         double irons = ExternalMagic.alpha(ExternalMagic.IRONS);
         double ars = ExternalMagic.alpha(ExternalMagic.ARS);
         double mahou = ExternalMagic.alpha(ExternalMagic.MAHOU);
-        helper.assertTrue(reference == 100.0 && irons == 0.9 && ars == 0.9 && mahou == 0.85, "the defaults: 100, 0.9, 0.9, 0.85");
-        helper.assertTrue(ExternalMagic.costMultiplier(100.0, reference, irons) == 1.0, "a capacity of 100 pays the cost as it is");
-        double thousand = ExternalMagic.costMultiplier(1_000.0, reference, irons);
-        helper.assertTrue(near(thousand, 7.94, 0.005), "1,000 with alpha 0.9: 7.94, got " + thousand);
-        helper.assertTrue(near(ExternalMagic.costMultiplier(1_000.0, reference, ars), thousand, 1.0E-12), "Ars uses the same 0.9");
-        helper.assertTrue(near(ExternalMagic.costMultiplier(8_000.0, reference, irons), 51.6, 0.05), "8,000: 51.6, got " + ExternalMagic.costMultiplier(8_000.0, reference, irons));
-        helper.assertTrue(near(ExternalMagic.costMultiplier(1_000.0, reference, mahou), 7.08, 0.005), "Mahou, alpha 0.85, at 1,000: 7.08, got "
-                + ExternalMagic.costMultiplier(1_000.0, reference, mahou));
+        helper.assertTrue(reference == 100.0 && irons == 0.9 && ars == 0.9 && mahou == 0.85 && scale == 0.1, "the defaults: 100, 0.9, 0.9, 0.85, scale 0.1");
+        // scale 1.0 is the scaling of 1.0.0, number for number
+        helper.assertTrue(ExternalMagic.costMultiplier(100.0, reference, irons, 1.0) == 1.0, "a capacity of 100 pays the cost as it is");
+        double thousand = ExternalMagic.costMultiplier(1_000.0, reference, irons, 1.0);
+        helper.assertTrue(near(thousand, 7.94, 0.005), "1,000 with alpha 0.9 at scale 1: 7.94, got " + thousand);
+        helper.assertTrue(near(ExternalMagic.costMultiplier(1_000.0, reference, ars, 1.0), thousand, 1.0E-12), "Ars uses the same 0.9");
+        helper.assertTrue(near(ExternalMagic.costMultiplier(8_000.0, reference, irons, 1.0), 51.6, 0.05), "8,000: 51.6, got "
+                + ExternalMagic.costMultiplier(8_000.0, reference, irons, 1.0));
+        helper.assertTrue(near(ExternalMagic.costMultiplier(1_000.0, reference, mahou, 1.0), 7.08, 0.005), "Mahou, alpha 0.85, at 1,000: 7.08, got "
+                + ExternalMagic.costMultiplier(1_000.0, reference, mahou, 1.0));
         for (double small : new double[] {99.0, 50.0, 1.0, 0.0, -5.0, Double.NaN}) {
-            helper.assertTrue(ExternalMagic.costMultiplier(small, reference, irons) == 1.0, "never a discount below the reference: " + small);
+            helper.assertTrue(ExternalMagic.costMultiplier(small, reference, irons, scale) == 1.0, "never a discount below the reference: " + small);
         }
-        helper.assertTrue(near(50.0 * thousand, 397.0, 0.5), "the README example: a 50-mana spell at 1,000 costs about 397, got " + 50.0 * thousand);
+        helper.assertTrue(near(50.0 * thousand, 397.0, 0.5), "the 1.0.0 example: a 50-mana spell at 1,000 cost about 397, got " + 50.0 * thousand);
+        // the default scale 0.1: ten times less, never below 1
+        helper.assertTrue(ExternalMagic.costMultiplier(1_000.0, reference, irons, scale) == 1.0, "0.1 x 7.94 is below 1: the cost as it is");
+        helper.assertTrue(near(ExternalMagic.costMultiplier(8_000.0, reference, irons, scale), 5.16, 0.005), "8,000 at scale 0.1: 5.16");
 
-        // the live capacity decides, through the cultivator's own data
+        // the live capacity and the config decide, through the cultivator's own data
         ManaData data = new ManaData();
         data.setMaxMana(1_000.0);
-        helper.assertTrue(near(ExternalMagic.costMultiplier(data, ExternalMagic.IRONS), thousand, 1.0E-12), "the live capacity is used");
+        helper.assertTrue(ExternalMagic.costMultiplier(data, ExternalMagic.IRONS) == 1.0, "the live capacity is used: 1,000 pays the cost as it is");
         data.setMaxMana(8_000.0);
-        helper.assertTrue(near(ExternalMagic.costMultiplier(data, ExternalMagic.MAHOU), Math.pow(80.0, 0.85), 1.0E-9), "and it follows the capacity");
+        helper.assertTrue(near(ExternalMagic.costMultiplier(data, ExternalMagic.MAHOU), 0.1 * Math.pow(80.0, 0.85), 1.0E-9), "and it follows the capacity");
         helper.succeed();
     }
 
@@ -121,13 +127,13 @@ public final class ExternalMagicGameTests {
     public static void theSharedSpendPathPaysTheScaledCostAndHeatsByIt(GameTestHelper helper) {
         ServerPlayer player = TestPlayers.mock(helper);
         ManaData data = player.getData(AttachmentRegistries.MANA_DATA);
-        data.setMaxMana(1_000.0);
+        data.setMaxMana(10_000.0);
         data.setMana(1_000.0);
         data.setBodyHeat(0.0);
         double paid = MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 50.0);
-        double expected = 50.0 * Math.pow(10.0, 0.9);
+        double expected = 50.0 * 0.1 * Math.pow(100.0, 0.9);
         helper.assertTrue(near(paid, expected, 1.0E-9) && near(data.mana(), 1_000.0 - expected, 1.0E-9), "a 50-mana spell costs the core " + expected + ": paid " + paid);
-        double heat = expected / 1_000.0 * ManaConfig.SERVER.heatPerCapacitySpent.get();
+        double heat = expected / 10_000.0 * ManaConfig.SERVER.heatPerCapacitySpent.get();
         helper.assertTrue(near(data.bodyHeat(), heat, 1.0E-9), "heat follows the amount paid (" + heat + "): " + data.bodyHeat());
 
         // an empty core pays what it has, and heats by that, not by the price asked
@@ -135,7 +141,7 @@ public final class ExternalMagicGameTests {
         data.setBodyHeat(0.0);
         double partial = MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 50.0);
         helper.assertTrue(near(partial, 100.0, 1.0E-9) && data.mana() == 0.0, "only 100 was there to pay: " + partial);
-        helper.assertTrue(near(data.bodyHeat(), 100.0 / 1_000.0 * ManaConfig.SERVER.heatPerCapacitySpent.get(), 1.0E-9), "heat of what was paid: " + data.bodyHeat());
+        helper.assertTrue(near(data.bodyHeat(), 100.0 / 10_000.0 * ManaConfig.SERVER.heatPerCapacitySpent.get(), 1.0E-9), "heat of what was paid: " + data.bodyHeat());
 
         // Circle 10 pays nothing
         data.setCircle(10);
@@ -208,6 +214,8 @@ public final class ExternalMagicGameTests {
         Method cast = abstractSpell.getMethod("castSpell", Level.class, int.class, ServerPlayer.class, castSourceClass, boolean.class);
 
         double multiplier = ExternalMagic.costMultiplier(data, ExternalMagic.IRONS);
+        // 1.0.1: max(1, 0.1 x (62,500 / 100)^0.9) = 32.8 (it was 328)
+        helper.assertTrue(near(multiplier, Math.max(1.0, 0.1 * Math.pow(625.0, 0.9)), 1.0E-9) && near(multiplier, 32.83, 0.01), "Iron's multiplier at 62,500: " + multiplier);
         double before = data.mana();
         cast.invoke(spell, helper.getLevel(), 1, player, spellbook, false);
         double paid = before - data.mana();
@@ -340,6 +348,7 @@ public final class ExternalMagicGameTests {
         int charged = (int) resolverClass.getMethod("getExpendedCost").invoke(resolver);
         int checked = (int) resolverClass.getMethod("getResolveCost").invoke(resolver);
         double multiplier = ExternalMagic.costMultiplier(data, ExternalMagic.ARS);
+        helper.assertTrue(near(multiplier, 0.1 * Math.pow(625.0, 0.9), 1.0E-9), "Ars's multiplier at 62,500 is 0.1 x 625^0.9: " + multiplier);
         helper.assertTrue(charged > 0 && checked == (int) Math.ceil(charged * multiplier), "Ars checks the scaled cost " + checked + " for a spell costing " + charged);
         helper.assertTrue((boolean) resolverClass.getMethod("canCast", LivingEntity.class).invoke(resolver, player), "a full core may cast");
 
@@ -418,7 +427,7 @@ public final class ExternalMagicGameTests {
 
         int counterBefore = (int) counter.invoke(mahou);
         double multiplier = ExternalMagic.costMultiplier(data, ExternalMagic.MAHOU);
-        helper.assertTrue(near(multiplier, Math.pow(625.0, 0.85), 1.0E-9), "Mahou's multiplier at 62,500: " + multiplier);
+        helper.assertTrue(near(multiplier, 0.1 * Math.pow(625.0, 0.85), 1.0E-9), "Mahou's multiplier at 62,500: " + multiplier);
         double before = data.mana();
         int used = (int) drain.invoke(null, player, 40, true, true);
         int counterAfterDrain = (int) counter.invoke(mahou);

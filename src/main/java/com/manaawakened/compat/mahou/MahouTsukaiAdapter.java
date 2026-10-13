@@ -19,7 +19,8 @@ import stepsword.mahoutsukai.mana.PlayerManaManager;
 /**
  * Mahou Tsukai. It offers no mana events, so its stored mana is overwritten with the core every
  * tick and anything it took in between is charged to the core, times the cost multiplier ({@link ExternalMagic}).
- * Its own regeneration is simply overwritten. Mana is whole numbers on its side, so the mirror is the floor of the core value.
+ * Its own regeneration is simply overwritten. Mana is whole numbers ({@code int}) on its side, so the mirror is the floor of the core
+ * value, at most 2,147,483,647 (1.0.1: a bigger core is shown as that, and spends inside it are read exactly).
  *
  * <p>Only the stored mana, the maximum and the "has magic" flag are written. Mahou's growth bookkeeping (the
  * mana-to-use counter that its {@code drainMana} lowers and that raises its maximum when it runs out) is never

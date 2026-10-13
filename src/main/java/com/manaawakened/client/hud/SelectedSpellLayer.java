@@ -2,6 +2,7 @@ package com.manaawakened.client.hud;
 
 import com.manaawakened.ManaAwakened;
 import com.manaawakened.client.ModKeyMappings;
+import com.manaawakened.core.CompactNumber;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.registry.AttachmentRegistries;
 import com.manaawakened.spell.SpellBook;
@@ -58,7 +59,7 @@ public final class SelectedSpellLayer {
                 y + SpellSlotRenderer.SIZE + 3, 0xFFB8BCD0);
         String name = spell.name();
         graphics.drawString(font, name, x - 4 - font.width(name), y + 2, affordable ? 0xFFFFFFFF : 0xFF9AA0B8);
-        String costText = data.isTranscendent() ? "0" : String.format(Locale.ROOT, "%,d", (long) Math.ceil(cost));
+        String costText = data.isTranscendent() ? "0" : CompactNumber.ceil(cost).getString();
         graphics.drawString(font, costText, x - 4 - font.width(costText), y + 13, affordable ? 0xFF7FD0FF : 0xFFFF7F7F);
     }
 }

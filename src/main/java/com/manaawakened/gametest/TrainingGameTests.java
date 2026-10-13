@@ -207,7 +207,7 @@ public final class TrainingGameTests {
         // A newer server may know refinements this client does not: unknown bits are dropped, known ones stay.
         SyncManaPayload future = new SyncManaPayload(sent.circle(), sent.mana(), sent.maxMana(), sent.purity(), sent.refinementPurity(), sent.bodyHeat(), sent.vesselTier(),
                 sent.fractureTicks(), sent.meditating(), sent.meditationTicks(), sent.seatedUntilRoom(), sent.charging(), sent.chargeTicks(), sent.chargeGoalTicks(),
-                sent.ritualTicks(), sent.ritualGoalTicks(), sent.requiredCapacity(), -1, false, sent.ritualSubject(), 0, 1.0F, sent.ceiling(), sent.trainingRate(),
+                sent.ritualTicks(), sent.ritualGoalTicks(), sent.threshold(), -1, false, sent.ritualSubject(), 0, 1.0F, sent.ceiling(), sent.trainingRate(),
                 sent.growthTier(), sent.growthRefinement(), sent.growthPassive(), sent.growthPurity(), sent.growthFracture(), sent.fullness(),
                 sent.perfectClears(), sent.legacySecondPicks());
         ManaData older = new ManaData();

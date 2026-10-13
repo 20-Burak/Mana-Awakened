@@ -1,0 +1,13 @@
+# 1.0.1 - your own thresholds
+
+Changes from the first play-test of 1.0.0.
+
+- **Your thresholds are your own now.** The first threshold is still 500. After that, **your next threshold is five times the core you break through with, and your cap is twice your threshold.** Break through at 500 and Circle 1 asks for 2,500 (cap 5,000); train Circle 0 to its cap of 1,000 first and Circle 1 asks for 5,000 (cap 10,000). Everyone starts a Circle at 40% of their own threshold.
+- **Breaking through at the cap makes every later number ten times bigger per Circle instead of five.** Always at the cap: 500, 5,000, 50,000 ... 500 billion at Circle 9. Always at the threshold: the old numbers, 500, 2,500, 12,500 ...
+- **A full Circle doubles your training speed from then on** (it was x1.5, and only from Circle 2): every Circle you leave at its cap, Circle 0 included, doubles the base rate of all later Circles (half-way: x1.5). This exactly makes up for the bigger threshold, so reaching the threshold takes the same time on either path; leaving full gives you the bigger core, and the perfect clear (two passives of that Circle and 5 purity) as before.
+- **Your 1.0.0 character keeps everything**: Circle, core, purity, refinements and passives. Your new threshold comes from how full you left each Circle. Example: at Circle 1 with a core of 4,984 after leaving Circle 0 at its cap, your threshold is now 5,000 (cap 10,000) and you train twice as fast.
+- **Big numbers are short**: from a million on, the HUD, the spend numbers, spell costs, the spell wheel and the altar show three digits and a letter: 1.23M, 45.6M, 4.56B, 7.89T (Turkish: Mn, Mr, Tn). `/mana` still prints every digit, and now also shows your threshold, cap, training bonus and the threshold you would get by breaking through now.
+- **Huge cores work everywhere**: a core of a trillion is saved, synced and shown exactly, and Iron's Spells charges its spells correctly at any core size.
+- **The Rune-Plate structure is now called a Meditation Formation** (Turkish: Meditasyon Dizilimi), so it is not mixed up with your cultivation Circle. While you meditate on one the HUD says "Formation tier 5". Nothing changes in the world: same blocks, same recipes.
+- **Spells of other mods cost ten times less.** Iron's Spells, Ars Nouveau and Mahou Tsukai spells still cost more as your core grows, but a 10-mana Firebolt now costs about 34 at a core of 5,000 (it was 338) and 144 at 25,000. Server owners can set `integration.externalCostScale` (1.0 = the old prices).
+- Server config: `core.thresholdFactor` (5) and `core.fullTrainingFactor` (2) replace `thresholdGrowth`, `fullTrainingBonus` and `ceilingFloor`; an existing file gets the new keys with their defaults on its own.

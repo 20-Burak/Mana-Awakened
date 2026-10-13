@@ -147,7 +147,7 @@ public final class SpellWheelScreen extends Screen {
         lines.add(Component.literal(spell.name()).withStyle(ChatFormatting.WHITE));
         lines.add(spell.sigil().displayName().withStyle(ChatFormatting.DARK_AQUA));
         long cost = data.isTranscendent() ? 0L : (long) Math.ceil(SpellCaster.costFor(minecraft.player, data, spell));
-        lines.add(Component.translatable("mana_awakened.wheel.cost", String.format(Locale.ROOT, "%,d", cost)).withStyle(ChatFormatting.AQUA));
+        lines.add(Component.translatable("mana_awakened.wheel.cost", com.manaawakened.core.CompactNumber.of(cost)).withStyle(ChatFormatting.AQUA));
         int cooldown = book.cooldown(spell.id());
         if (cooldown > 0) {
             lines.add(Component.translatable("mana_awakened.wheel.recovering", String.format(Locale.ROOT, "%.1f", cooldown / 20.0)).withStyle(ChatFormatting.RED));

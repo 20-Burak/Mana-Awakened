@@ -2,7 +2,7 @@
 
 Manhwa-style magic cultivation for **Minecraft 1.21.1** on **NeoForge**. Meditate to gather mana, train your core and break through ten Circles, from Mortal to Transcendent Deity. Inscribe your own spells at the Inscription Altar (105 sigils, from fire bolts and meteor volleys to ore sensing and gates to other worlds), each cast with its own magic circles and gestures. Iron's Spells 'n Spellbooks, Ars Nouveau and Mahou Tsukai draw on the same mana pool when they are installed.
 
-**Version 1.0.0**, the first public release. License: [GPL-3.0](LICENSE). Author: Burak.
+**Version 1.0.1** (the first public release was 1.0.0). License: [GPL-3.0](LICENSE). Author: Burak.
 
 ## Installation
 
@@ -15,7 +15,7 @@ Manhwa-style magic cultivation for **Minecraft 1.21.1** on **NeoForge**. Meditat
 | Optional | Iron's Spells 'n Spellbooks 1.21-3.4.4 or later, Ars Nouveau 5.8.2 or later, Mahou Tsukai 1.21.0-v1.35.12 or later (tested up to Iron's 1.21.1-3.16.3, Ars 5.13.3, Mahou 1.21.1-v1.36.28; newer builds are accepted and tried) |
 
 1. Install NeoForge for Minecraft 1.21.1.
-2. Put `mana_awakened-1.0.0.jar` and a Player Animator 2.x jar into the `mods` folder. A pack with Iron's Spells already has Player Animator (Iron's needs it too); keep only one copy.
+2. Put `mana_awakened-1.0.1.jar` and a Player Animator 2.x jar into the `mods` folder. A pack with Iron's Spells already has Player Animator (Iron's needs it too); keep only one copy.
 3. On a server, install both on the server as well; every player needs them.
 
 The first start writes `config/mana_awakened-client.toml` and `config/mana_awakened-server.toml`. Nothing else needs setting up: new players get a **Cultivator's Codex** in their inventory, which explains everything in the game.
@@ -59,11 +59,11 @@ Press **K** while standing on **solid ground** (not in the air, in water or lava
 
 It ends when you press **K** again, and it **breaks** (with the reason on the action bar) when you press a movement or jump key, take any damage, are pushed or knocked more than 0.2 blocks or lifted, are teleported or change worlds, mount something, start flying or gliding, end up in water or lava, or log out. Under a low ceiling you stay seated until there is room to stand ("No room to stand up.").
 
-### Training: Meditation Circles and ambient mana
+### Training: Meditation Formations and ambient mana
 
 Plain meditation trains the core at the base rate of your Circle. To train faster:
 
-- **Meditation Circle**: place a **Meditation Core** and square rings of **Rune Plates** around it, all at the same height (8 stone bricks around an amethyst shard make 8 plates). When a ring is complete it forms and lights up. Stand on the core and meditate. Right-click the core to see the circle and the next missing ring.
+- **Meditation Formation**: place a **Meditation Core** and square rings of **Rune Plates** around it, all at the same height (8 stone bricks around an amethyst shard make 8 plates). When a ring is complete it forms and lights up. Stand on the core and meditate; the HUD shows "Formation tier N" (the tier of the structure, not your cultivation Circle). Right-click the core to see the formation and the next missing ring.
 
   | Tier | Rings | Footprint | Training |
   |---|---|---|---|
@@ -81,17 +81,28 @@ The HUD shows **▲ training ×N** while the core grows; hover over the Mana Hea
 
 ### Core training in numbers
 
-Each Circle has a **threshold** you must reach to break through, and a **ceiling** the core never passes. How fully you trained the earlier Circles (your *fullness*, from 0 at the threshold to 1 at the ceiling) raises later ceilings, base rates and start cores. The defaults (server config, section `core`):
+Each Circle has a **threshold** you must reach to break through, and a **cap** the core never passes. In Circle 0 the threshold is 500. After that it is **yours**: **your next threshold is five times the core you break through with; your cap is twice your threshold**. A breakthrough doubles the core, so everyone starts a Circle at 40% of their own threshold.
+
+| Leaving Circle 0 at | Circle 1 starts at | Threshold | Cap |
+|---|---|---|---|
+| 500 (the threshold) | 1,000 | 2,500 | 5,000 |
+| 750 | 1,500 | 3,750 | 7,500 |
+| 1,000 (the cap) | 2,000 | 5,000 | 10,000 |
+
+**Breaking through at the cap makes every later number ten times bigger per Circle instead of five**: always at the cap, the thresholds are 500, 5,000, 50,000 … 500 billion in Circle 9; always at the threshold, 500, 2,500, 12,500 … 976.6 million. Training speeds up to match: every Circle you leave full doubles the base rate of all later ones (half-full: ×1.5), so reaching the threshold takes as long on either path. What leaving full buys is the bigger core and the perfect clear. The defaults (server config, section `core`):
 
 | | Value |
 |---|---|
-| Thresholds, Circles 0 to 9 | 500, 2,500, 12,500, 62,500, 312,500, 1,562,500, 7,812,500, 39,062,500, 195,312,500, 976,562,500 |
-| Ceiling | threshold × (1 + Q), where Q is how fully the Circles behind you were trained (at least 0.1) |
-| Base rate (core per second) | 0.1 in Circles 0 and 1, then doubling each Circle; ×1.5 more for every fully trained Circle behind you |
-| Slowdown | past the threshold the rate falls towards the ceiling |
-| Multiplier | Meditation Circle tier × ambient mana × (Dragon Heart and refinements) × passives × purity, halved while fractured |
+| First threshold | 500 (`firstThreshold`) |
+| Next threshold | 5 × the core you break through with (`thresholdFactor`) |
+| Cap | 2 × the threshold |
+| Base rate (core per second) | 0.1 in Circles 0 and 1, then doubling each Circle; ×(1 + fullness) for every Circle behind you, Circle 0 included (`fullTrainingFactor` 2) |
+| Slowdown | past the threshold the rate falls towards the cap |
+| Multiplier | Meditation Formation tier × ambient mana × (Dragon Heart and refinements) × passives × purity, halved while fractured |
 
-A **perfect clear** (leaving a Circle with at least 99.5% fullness) adds 5 [purity](#purity) for good and lets you choose **two** passives of that Circle.
+Plain meditation, no multipliers, from the start of a Circle to its threshold (the same on every path): Circle 0 1.1 h, 1 4.2 h, 2 10.4 h, 3 26 h, 4 65 h, 5 163 h; each later Circle 2.5 times the one before. A **perfect clear** (leaving a Circle with at least 99.5% fullness, the share of the way from the threshold to the cap) adds 5 [purity](#purity) for good and lets you choose **two** passives of that Circle.
+
+Big numbers are shortened from a million on, to three digits: 1.23M, 45.6M, 4.56B, 7.89T (Turkish Mn, Mr, Tn). `/mana` always prints them in full.
 
 ### Purity
 
@@ -192,7 +203,7 @@ Every Circle has five passives (fifty in all); one per Circle can be active (two
 
 With **Iron's Spells 'n Spellbooks**, **Ars Nouveau** or **Mahou Tsukai** installed, their mana *is* your core: their maximum is your capacity, their own regeneration is off (meditation refills the pool), and every spell they cast is paid from the core and heats your body.
 
-- **Their costs grow with your core**: a spell costing `amount` takes `amount × max(1, (capacity / 100)^0.9)` from the core (0.85 for Mahou Tsukai). Iron's own spell screens still show the unscaled cost; the real price shows as a rising "-341" on the Mana Heart, and the Mana Heart's tooltip and `/mana` show the multiplier ("External spells cost ×34.1").
+- **Their costs grow with your core**: a spell costing `amount` takes `amount × max(1, 0.1 × (capacity / 100)^0.9)` from the core (0.85 for Mahou Tsukai). A 10-mana Firebolt costs 10 up to a capacity of about 1,300, about 34 at 5,000 and about 144 at 25,000. Iron's own spell screens still show the unscaled cost; the real price shows as a rising "-34" on the Mana Heart, and the Mana Heart's tooltip and `/mana` show the multiplier ("External spells cost ×3.38"). The factor 0.1 is `integration.externalCostScale` (1.0 brings back the ten times steeper scaling of 1.0.0).
 - **Their damage grows with your Circle**: +0% (Circles 0 to 2), +20% (3 to 4), +50% (5 to 6), +100% (7 to 9), +150% (10), times your purity bonus, at most ×4. Iron's (through its spell power) and Ars Nouveau get it; Mahou Tsukai has no hook for it.
 - At **Circle 10** their spells are free.
 - `/mana` lists the mods sharing the pool; `integration.unifyMagicMods = false` in the server config switches the bridge off, and `unifyIrons`, `unifyArs`, `unifyMahou` switch one mod off at a time (each mod then keeps its own mana).
@@ -202,7 +213,7 @@ If MurimBodyTempering is installed as well, set its mana mode to `OFF` so only o
 
 ## HUD
 
-The **Mana Heart** (top-left by default) shows the core, a mana gauge, a heat arc and one ring per Circle, with the Circle, mana, core, purity, heat and ambient mana beside it. Every cast shows what it really cost (a fading ghost on the gauge and a rising number); steady drains such as flight show as one "-2.5/s" readout. A **tempered health bar** replaces the hearts when your health grows large. Hover over the Mana Heart with the chat open for the training and purity breakdowns.
+The **Mana Heart** (top-left by default) shows the core, a mana gauge, a heat arc and one ring per Circle, with the Circle, mana, core ("Core 1,000 / 2,500 · max 5,000": core, threshold and cap), purity, heat and ambient mana beside it. Every cast shows what it really cost (a fading ghost on the gauge and a rising number); steady drains such as flight show as one "-2.5/s" readout. A **tempered health bar** replaces the hearts when your health grows large. Hover over the Mana Heart with the chat open for the training and purity breakdowns.
 
 Client config (`config/mana_awakened-client.toml`, also in *Mods → Mana Awakened → Config*, applied at once):
 
@@ -236,12 +247,14 @@ The server config `mana_awakened-server.toml` (synced to clients) holds every ba
 | `breakthrough.chargeSeconds` / `damageInterrupts` | 3 / true | the breakthrough hold |
 | `backlash.damageFraction` / `canKill` | 0.4 / false | the failed-breakthrough damage |
 | `trial.enabled` / `fromCircle` / `seconds` / `difficulty` | true / 5 / 180 / 1.0 | heavenly trials |
-| `world.tierGrowth` | 2.0 | training per Meditation Circle tier (to the power of the tier) |
+| `core.thresholdFactor` / `fullTrainingFactor` | 5.0 / 2.0 | the next threshold per core broken through with, and the rate bonus of a full Circle |
+| `world.tierGrowth` | 2.0 | training per Meditation Formation tier (to the power of the tier) |
 | `world.leylinesEnabled` / `maxAmbient` | true / 6.0 | leylines and the ambient ceiling |
 | `world.condenserMaxEnergy` / `condenserMaxRadius` | 10000 / 32 | the Mana Condenser's limits |
 | `world.cropGrowthBoost` | true | crops grow faster in thick mana |
 | `integration.unifyMagicMods` | true | share one mana pool with Iron's / Ars / Mahou |
 | `integration.unifyIrons` / `unifyArs` / `unifyMahou` | true / true / true | share the pool with that mod (ignored when `unifyMagicMods` is false) |
+| `integration.externalCostScale` | 0.1 | multiplies the cost scaling of other mods' spells (1.0 = the scaling of 1.0.0) |
 | `integration.ironsCostExponent` / `arsCostExponent` / `mahouCostExponent` | 0.9 / 0.9 / 0.85 | how other mods' costs grow with the core |
 | `meditation.logStarts` | false | one log line per meditation start (for server admins) |
 
@@ -254,6 +267,7 @@ The rest (the core-training model, purity bonuses, heat, regeneration, the Drago
 | `/mana` | Anyone: your status and breakthrough chance. |
 | `/mana info <player>` | Operators |
 | `/mana set circle\|capacity\|vessel\|mana\|heat <players> <value>` | Operators (purity cannot be set; it comes from refinements and perfect clears) |
+| `/mana set circle <players> <circle> <fullness>` | Operators, for testing a path: every Circle before left at `fullness` (0 = at the threshold, 1 = at the cap), with the threshold that leads to and its start core; `/mana set circle @s 9 1` is the player who always broke through at the cap (threshold 500B) |
 | `/mana fill <players>` · `/mana heal <players>` · `/mana reset <players>` | Operators |
 | `/mana refine give\|remove <players> <refinement\|all>` | Operators |
 | `/mana trial start\|stop <players>` | Operators |

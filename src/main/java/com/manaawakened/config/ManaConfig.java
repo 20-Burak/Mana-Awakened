@@ -37,15 +37,14 @@ public final class ManaConfig {
         // core training
         public final ModConfigSpec.DoubleValue startCore;
         public final ModConfigSpec.DoubleValue firstThreshold;
-        public final ModConfigSpec.DoubleValue thresholdGrowth;
+        public final ModConfigSpec.DoubleValue thresholdFactor;
         public final ModConfigSpec.DoubleValue circleCoreMultiplier;
         public final ModConfigSpec.DoubleValue baseRateCircle0;
         public final ModConfigSpec.DoubleValue baseRateCircle1;
         public final ModConfigSpec.DoubleValue baseRateGrowth;
-        public final ModConfigSpec.DoubleValue fullTrainingBonus;
+        public final ModConfigSpec.DoubleValue fullTrainingFactor;
         public final ModConfigSpec.DoubleValue taperFloor;
         public final ModConfigSpec.DoubleValue taperFloorDecay;
-        public final ModConfigSpec.DoubleValue ceilingFloor;
         public final ModConfigSpec.DoubleValue perfectClearFraction;
         // meditation
         public final ModConfigSpec.DoubleValue meditationRegenPercent;
@@ -99,7 +98,7 @@ public final class ManaConfig {
         public final ModConfigSpec.DoubleValue trialDifficulty;
         public final ModConfigSpec.IntValue trialFailFractureSeconds;
         public final ModConfigSpec.IntValue trialArenaRadius;
-        // world: leylines, meditation circle, condenser, crops
+        // world: leylines, meditation formation, condenser, crops
         public final ModConfigSpec.DoubleValue circleTierGrowth;
         public final ModConfigSpec.BooleanValue leylinesEnabled;
         public final ModConfigSpec.DoubleValue leylineStrength;
@@ -131,6 +130,7 @@ public final class ManaConfig {
         public final ModConfigSpec.BooleanValue unifyMahou;
         public final ModConfigSpec.DoubleValue heatPerCapacitySpent;
         public final ModConfigSpec.DoubleValue externalReferencePool;
+        public final ModConfigSpec.DoubleValue externalCostScale;
         public final ModConfigSpec.DoubleValue ironsCostExponent;
         public final ModConfigSpec.DoubleValue arsCostExponent;
         public final ModConfigSpec.DoubleValue mahouCostExponent;
@@ -147,7 +147,8 @@ public final class ManaConfig {
         Server(ModConfigSpec.Builder b) {
             b.comment("Mana capacity and natural absorption").translation(key("mana")).push("mana");
             capacityMultiplier = b
-                    .comment("Multiplies the starting core and every breakthrough threshold (see the core section: a mortal starts at 100 and needs 500 to leave Circle 0).")
+                    .comment("Multiplies the starting core and the first breakthrough threshold (see the core section: a mortal starts at 100 and needs 500 to leave Circle 0).",
+                            "Every later threshold follows from the core you break through with, so it grows with them; a change applies to Circle 0 at once and to later Circles from the next breakthrough on.")
                     .translation(key("capacityMultiplier"))
                     .defineInRange("capacityMultiplier", 1.0, 0.01, 1000.0);
             passiveRegenPercent = b
@@ -166,19 +167,21 @@ public final class ManaConfig {
                     .translation(key("startCore"))
                     .defineInRange("startCore", 100.0, 1.0, 1.0E9);
             firstThreshold = b
-                    .comment("Core needed to attempt the breakthrough out of Circle 0 (times capacityMultiplier). Each later threshold is thresholdGrowth x 2 x circleCoreMultiplier times the one before: 500, 2,500, 12,500 ... with the defaults.")
+                    .comment("Core needed to attempt the breakthrough out of Circle 0 (times capacityMultiplier). Every later threshold is personal: see thresholdFactor.")
                     .translation(key("firstThreshold"))
                     .defineInRange("firstThreshold", 500.0, 1.0, 1.0E9);
-            thresholdGrowth = b
-                    .comment("k in threshold(c) = k x 2 x threshold(c-1) x circleCoreMultiplier.")
-                    .translation(key("thresholdGrowth"))
-                    .defineInRange("thresholdGrowth", 1.25, 0.1, 10.0);
+            // 1.0.1: replaces thresholdGrowth (a table factor); the old key is dropped from existing files
+            thresholdFactor = b
+                    .comment("Your next threshold is this many times the core you break through with (5: leaving Circle 0 at 500 asks 2,500 next, leaving it at its cap of 1,000 asks 5,000).",
+                            "Your cap is always twice your threshold, so breaking through at the cap makes every later number ten times bigger per Circle instead of five.")
+                    .translation(key("thresholdFactor"))
+                    .defineInRange("thresholdFactor", 5.0, 1.0, 100.0);
             circleCoreMultiplier = b
                     .comment("A successful breakthrough multiplies the core by this.")
                     .translation(key("circleCoreMultiplier"))
                     .defineInRange("circleCoreMultiplier", 2.0, 1.0, 10.0);
             baseRateCircle0 = b
-                    .comment("Core gained per second in Circle 0 while meditating with a full core, before the multipliers (Meditation Circle, ambient mana, refinements, passives). It does not depend on the core's size.")
+                    .comment("Core gained per second in Circle 0 while meditating with a full core, before the multipliers (Meditation Formation, ambient mana, refinements, passives). It does not depend on the core's size.")
                     .translation(key("baseRateCircle0"))
                     .defineInRange("baseRateCircle0", 0.1, 0.0, 1.0E6);
             baseRateCircle1 = b
@@ -189,24 +192,22 @@ public final class ManaConfig {
                     .comment("Base rate of Circle c (c >= 1) = baseRateCircle1 x baseRateGrowth^(c-1).")
                     .translation(key("baseRateGrowth"))
                     .defineInRange("baseRateGrowth", 2.0, 1.0, 10.0);
-            fullTrainingBonus = b
-                    .comment("Reward for a full Circle: from Circle 2 on, the base rate is multiplied by 1 + (this - 1) x fullness of the Circle before, compounding (fullness 1 everywhere gives x1.5, x2.25, x3.375 ...).")
-                    .translation(key("fullTrainingBonus"))
-                    .defineInRange("fullTrainingBonus", 1.5, 1.0, 10.0);
+            // 1.0.1: replaces fullTrainingBonus (1.5, from Circle 2 on), so existing files get the new default of 2
+            fullTrainingFactor = b
+                    .comment("Reward for a full Circle: every Circle you left (Circle 0 included) multiplies the base rate of all later ones by 1 + (this - 1) x its fullness, compounding",
+                            "(x2 for a Circle left at its cap, x1.5 at half-way). At 2 it exactly makes up for the bigger threshold, so reaching the threshold takes as long on every path.")
+                    .translation(key("fullTrainingFactor"))
+                    .defineInRange("fullTrainingFactor", 2.0, 1.0, 10.0);
             taperFloor = b
-                    .comment("Past the threshold training slows down linearly; at the ceiling only this fraction of the rate is left in Circle 0 (taperFloor x taperFloorDecay^circle in later Circles, never below 0.001).")
+                    .comment("Past the threshold training slows down linearly; at the cap only this fraction of the rate is left in Circle 0 (taperFloor x taperFloorDecay^circle in later Circles, never below 0.001).")
                     .translation(key("taperFloor"))
                     .defineInRange("taperFloor", 0.1, 0.001, 1.0);
             taperFloorDecay = b
                     .comment("How much lower the slowdown floor is in each later Circle.")
                     .translation(key("taperFloorDecay"))
                     .defineInRange("taperFloorDecay", 0.7, 0.01, 1.0);
-            ceilingFloor = b
-                    .comment("Qmin: the lowest history quality Q of Circles 1..9, so every ceiling is at least (1 + this) x the threshold (1.1 x with the default) however weakly the earlier Circles were trained.")
-                    .translation(key("ceilingFloor"))
-                    .defineInRange("ceilingFloor", 0.1, 0.01, 1.0);
             perfectClearFraction = b
-                    .comment("Leaving a Circle with at least this fullness (the share of the way from its threshold to its ceiling) is a perfect clear: two passive picks for that Circle.")
+                    .comment("Leaving a Circle with at least this fullness (the share of the way from its threshold to its cap) is a perfect clear: two passive picks for that Circle.")
                     .translation(key("perfectClearFraction"))
                     .defineInRange("perfectClearFraction", 0.995, 0.5, 1.0);
             b.pop();
@@ -412,9 +413,9 @@ public final class ManaConfig {
                     .defineInRange("arenaRadius", 48, 8, 256);
             b.pop();
 
-            b.comment("Ambient mana, the Meditation Circle and the Mana Condenser").translation(key("world")).push("world");
+            b.comment("Ambient mana, the Meditation Formation and the Mana Condenser").translation(key("world")).push("world");
             circleTierGrowth = b
-                    .comment("Core-growth multiplier of a Meditation Circle of tier N, compared with plain meditation, is this value to the power N (2.0 gives x2, x4, x8, x16, x32).")
+                    .comment("Core-growth multiplier of a Meditation Formation of tier N, compared with plain meditation, is this value to the power N (2.0 gives x2, x4, x8, x16, x32).")
                     .translation(key("tierGrowth"))
                     .defineInRange("tierGrowth", 2.0, 1.0, 4.0);
             leylinesEnabled = b
@@ -534,10 +535,16 @@ public final class ManaConfig {
                     .translation(key("heatPerCapacitySpent"))
                     .defineInRange("heatPerCapacitySpent", 40.0, 0.0, 1000.0);
             externalReferencePool = b
-                    .comment("Cost scaling of other mods' spells: the core pays their cost x max(1, (core capacity / referencePool)^exponent), so a big core does not make",
-                            "their fixed costs free. The capacity is the live one. A 50-mana spell with a capacity of 1,000 and exponent 0.9 costs about 397.")
+                    .comment("Cost scaling of other mods' spells: the core pays their cost x max(1, externalCostScale x (core capacity / referencePool)^exponent), so a big core",
+                            "does not make their fixed costs free. The capacity is the live one. A 10-mana spell with a capacity of 5,000, exponent 0.9 and scale 0.1 costs about 34.")
                     .translation(key("externalReferencePool"))
                     .defineInRange("referencePool", 100.0, 1.0, 1.0E9);
+            // 1.0.1: other mods' spells cost ten times less; an old file gets this key with its default
+            externalCostScale = b
+                    .comment("Multiplies the cost scaling of other mods' spells (1.0 = the scaling of 1.0.0, 0.1 = ten times cheaper). The multiplier never goes below 1:",
+                            "a 10-mana spell costs 10 at a capacity of 1,000, about 34 at 5,000 and about 144 at 25,000.")
+                    .translation(key("externalCostScale"))
+                    .defineInRange("externalCostScale", 0.1, 0.01, 1.0);
             ironsCostExponent = b
                     .comment("Exponent of the cost scaling for Iron's Spells 'n Spellbooks (0 = their costs as they are).")
                     .translation(key("ironsCostExponent"))

@@ -1,5 +1,6 @@
 package com.manaawakened.client.hud;
 
+import com.manaawakened.core.CompactNumber;
 import java.util.Locale;
 
 /**
@@ -87,9 +88,12 @@ public final class DrainRate {
         return false;
     }
 
-    /** The rate as a number, "-2.5" (below 10 with one decimal) or "-1,234"; the unit comes from the language file. */
+    /**
+     * The rate as a number, "-2.5" (below 10 with one decimal), "-1,234", or from a million on compact ("-4.56B"); the units come from
+     * the language file.
+     */
     public static String format(double perSecond) {
-        return perSecond < 9.95 ? String.format(Locale.ROOT, "-%.1f", perSecond) : String.format(Locale.ROOT, "-%,d", Math.round(perSecond));
+        return perSecond < 9.95 ? String.format(Locale.ROOT, "-%.1f", perSecond) : CompactNumber.round(-perSecond).getString();
     }
 
     /** 1 while reports keep coming, fading to 0 over {@link #FADE_MS} once they stop; 0 before a rate is known. */
