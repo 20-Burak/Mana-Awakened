@@ -100,17 +100,15 @@ public final class ManaHudText {
         long mana = data.isTranscendent() ? -1L : (long) Math.floor(data.mana());
         long max = (long) Math.floor(data.maxMana());
         if (AMOUNT.stale(mana * 31L + max)) {
-            AMOUNT.set(Component.literal(mana < 0L ? "∞" : String.format(Locale.ROOT, "%,d / %,d", mana, max)), font);
+            AMOUNT.set(HudNumbers.amount(data), font);
         }
         long core = (long) Math.floor(data.coreCapacity());
-        long threshold = (long) Math.ceil(data.requiredCapacity());
+        long threshold = (long) Math.ceil(data.threshold());
         long ceiling = (long) Math.floor(data.ceilingCapacity());
         boolean ready = data.hasRequiredCapacity();
         if (CORE.stale(((core * 31L + threshold) * 31L + ceiling) * 2L + (ready ? 1L : 0L))) {
-            CORE.set(ready ? Component.translatable("mana_awakened.hud.core.ready", whole(core), whole(ceiling))
-                    : Component.translatable("mana_awakened.hud.core", whole(core), whole(threshold), whole(ceiling)), font);
-            CORE_SHORT.set(ready ? Component.translatable("mana_awakened.hud.core.ready.short", whole(core))
-                    : Component.translatable("mana_awakened.hud.core.short", whole(core), whole(threshold)), font);
+            CORE.set(HudNumbers.core(data), font);
+            CORE_SHORT.set(HudNumbers.coreShort(data), font);
         }
         if (TRAINING.stale(0L)) {
             TRAINING.set(Component.translatable("mana_awakened.hud.training"), font);
@@ -238,13 +236,9 @@ public final class ManaHudText {
         return width;
     }
 
-    /** The width of the stance row (meditating, compressing, absorbing) with the Meditation Circle tier. */
+    /** The width of the stance row (meditating, compressing, absorbing) with the Meditation Formation tier. */
     public static int stanceWidth() {
         return STANCE.width + (hasTier ? PART_GAP + TIER.width : 0);
-    }
-
-    private static String whole(long value) {
-        return String.format(Locale.ROOT, "%,d", value);
     }
 
     private static String clock(int ticks) {

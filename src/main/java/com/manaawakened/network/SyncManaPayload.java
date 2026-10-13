@@ -14,7 +14,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * {@code refinements} the bit mask of absorbed refinements, {@code training} whether the core is growing right now and
  * {@code ritualSubject} what an absorption ritual in progress takes in (see {@link ManaData#ritualSubject()}),
  * {@code circleTier} the Meditation Circle tier the player sits on and {@code ambient} the ambient mana around them.
- * The core-training model travels as {@code requiredCapacity} (threshold E), {@code ceiling} (Cap), {@code trainingRate}
+ * The core-training model travels as {@code threshold} (E, personal since 1.0.1), {@code ceiling} (Cap), {@code trainingRate}
  * (core per second now), the parts of the growth multiplier, the fullness of every Circle left and the perfect clears. Purity (3.3.0,
  * 0..150, derived on the server) travels with the points of the refinements; the second passive picks kept from dropped 3.2.0 perfect
  * clears travel as {@code legacySecondPicks}.
@@ -38,7 +38,7 @@ public record SyncManaPayload(
         int chargeGoalTicks,
         int ritualTicks,
         int ritualGoalTicks,
-        double requiredCapacity,
+        double threshold,
         int refinements,
         boolean training,
         int ritualSubject,
@@ -81,7 +81,7 @@ public record SyncManaPayload(
                 data.chargeGoalTicks(),
                 data.ritualTicks(),
                 data.ritualGoalTicks(),
-                data.requiredCapacity(),
+                data.threshold(),
                 data.refinementMask(),
                 data.isTraining(),
                 data.ritualSubject(),
@@ -116,7 +116,7 @@ public record SyncManaPayload(
         int chargeGoalTicks = buf.readVarInt();
         int ritualTicks = buf.readVarInt();
         int ritualGoalTicks = buf.readVarInt();
-        double requiredCapacity = buf.readDouble();
+        double threshold = buf.readDouble();
         int refinements = buf.readVarInt();
         boolean training = buf.readBoolean();
         int ritualSubject = buf.readVarInt();
@@ -137,7 +137,7 @@ public record SyncManaPayload(
         int perfectClears = buf.readVarInt();
         int legacySecondPicks = buf.readVarInt();
         return new SyncManaPayload(circle, mana, maxMana, purity, refinementPurity, bodyHeat, vesselTier, fractureTicks, meditating, meditationTicks, seatedUntilRoom, charging,
-                chargeTicks, chargeGoalTicks, ritualTicks, ritualGoalTicks, requiredCapacity, refinements, training, ritualSubject, circleTier,
+                chargeTicks, chargeGoalTicks, ritualTicks, ritualGoalTicks, threshold, refinements, training, ritualSubject, circleTier,
                 ambient, ceiling, trainingRate, growthTier, growthRefinement, growthPassive, growthPurity, growthFracture, List.copyOf(fullness),
                 perfectClears, legacySecondPicks);
     }
@@ -159,7 +159,7 @@ public record SyncManaPayload(
         buf.writeVarInt(chargeGoalTicks);
         buf.writeVarInt(ritualTicks);
         buf.writeVarInt(ritualGoalTicks);
-        buf.writeDouble(requiredCapacity);
+        buf.writeDouble(threshold);
         buf.writeVarInt(refinements);
         buf.writeBoolean(training);
         buf.writeVarInt(ritualSubject);
@@ -183,7 +183,7 @@ public record SyncManaPayload(
 
     public void applyTo(ManaData data) {
         data.applyServerSnapshot(circle, mana, maxMana, purity, refinementPurity, bodyHeat, vesselTier, fractureTicks,
-                meditating, meditationTicks, seatedUntilRoom, charging, chargeTicks, chargeGoalTicks, ritualTicks, ritualGoalTicks, requiredCapacity, refinements,
+                meditating, meditationTicks, seatedUntilRoom, charging, chargeTicks, chargeGoalTicks, ritualTicks, ritualGoalTicks, threshold, refinements,
                 training, ritualSubject, circleTier, ambient, ceiling, trainingRate, growthTier, growthRefinement, growthPassive, growthPurity,
                 growthFracture, fullness, perfectClears, legacySecondPicks);
     }

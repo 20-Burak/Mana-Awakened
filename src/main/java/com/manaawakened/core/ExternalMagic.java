@@ -2,15 +2,17 @@ package com.manaawakened.core;
 
 import com.manaawakened.config.ManaConfig;
 import java.util.Locale;
+import net.minecraft.network.chat.Component;
 
 /**
  * How other mods' spells (Iron's Spells, Ars Nouveau, Mahou Tsukai) are paid for and how strong they are, drawing on the one shared
  * core (3.4.0). Plain arithmetic over the server config; no third-party type is ever named here.
  *
  * <ul>
- *   <li><b>Cost</b>: for every amount a mod spends, the core pays amount x {@link #costMultiplier(double, double, double)} =
- *       max(1, (core capacity / referencePool)^alpha). The capacity is the live one, so the scaling follows the core however it was
- *       trained. A 50-mana spell with a capacity of 1,000, a reference pool of 100 and alpha 0.9 costs 50 x 7.94 = about 397.</li>
+ *   <li><b>Cost</b>: for every amount a mod spends, the core pays amount x {@link #costMultiplier(double, double, double, double)} =
+ *       max(1, scale x (core capacity / referencePool)^alpha), scale = {@code externalCostScale} (0.1 since 1.0.1; 1.0 is the scaling of
+ *       1.0.0). The capacity is the live one, so the scaling follows the core however it was trained. A 10-mana spell with a capacity of
+ *       5,000, a reference pool of 100, alpha 0.9 and scale 0.1 costs 10 x 3.38 = about 34; at 1,000 the floor of 1 keeps it at 10.</li>
  *   <li><b>Power</b>: their damage is multiplied by (1 + the bonus of the caster's Circle) x the purity damage buff
  *       ({@link PurityBuffs#damage}), at most {@code maxExternalPowerMultiplier}.</li>
  * </ul>
@@ -19,25 +21,40 @@ public final class ExternalMagic {
     public static final String IRONS = "irons_spellbooks";
     public static final String ARS = "ars_nouveau";
     public static final String MAHOU = "mahoutsukai";
+    /** The units of {@link #formatMultiplier} in a language-neutral form; what is shown comes from the language file ({@link #multiplierText}). */
+    private static final String[] NEUTRAL_UNITS = {"%sM", "%sB", "%sT", "%sQ"};
 
     private ExternalMagic() {
     }
 
-    /** max(1, (maxMana / referencePool)^alpha): never a discount, 1 for anything unusable. */
-    public static double costMultiplier(double maxMana, double referencePool, double alpha) {
-        if (!Double.isFinite(maxMana) || !Double.isFinite(referencePool) || referencePool <= 0.0 || !Double.isFinite(alpha) || maxMana <= referencePool) {
+    /** max(1, scale x (maxMana / referencePool)^alpha): never a discount, 1 for anything unusable. */
+    public static double costMultiplier(double maxMana, double referencePool, double alpha, double scale) {
+        if (!Double.isFinite(maxMana) || !Double.isFinite(referencePool) || referencePool <= 0.0 || !Double.isFinite(alpha) || maxMana <= referencePool
+                || !Double.isFinite(scale)) {
             return 1.0;
         }
-        double multiplier = Math.pow(maxMana / referencePool, Math.max(0.0, alpha));
+        double multiplier = Math.max(0.0, scale) * Math.pow(maxMana / referencePool, Math.max(0.0, alpha));
         return Double.isFinite(multiplier) ? Math.max(1.0, multiplier) : 1.0;
     }
 
-    /** A cost multiplier with three significant digits, as the HUD tooltip and {@code /mana status} print it: 7.94, 34.1, 397, 1,234. */
+    /**
+     * A cost multiplier with three significant digits, as the HUD tooltip and {@code /mana status} print it: 7.94, 34.1, 397, 1,234; from
+     * a million on compact like every big number ({@link CompactNumber}). Also the key mods with the same printed value are grouped by.
+     */
     public static String formatMultiplier(double multiplier) {
         if (multiplier < 9.995) {
             return String.format(Locale.ROOT, "%.2f", multiplier);
         }
-        return multiplier < 99.95 ? String.format(Locale.ROOT, "%.1f", multiplier) : String.format(Locale.ROOT, "%,.0f", multiplier);
+        if (multiplier < 99.95) {
+            return String.format(Locale.ROOT, "%.1f", multiplier);
+        }
+        return CompactNumber.format(Math.round(multiplier), NEUTRAL_UNITS);
+    }
+
+    /** {@link #formatMultiplier} as it is shown: the plain text, or the compact digits with the unit of the language. */
+    public static Component multiplierText(double multiplier) {
+        long whole = Math.round(multiplier);
+        return multiplier >= 99.95 && whole >= CompactNumber.COMPACT_FROM ? CompactNumber.of(whole) : Component.literal(formatMultiplier(multiplier));
     }
 
     /** The bonus of a Circle from the table: Circles 0-2, 3-4, 5-6, 7-9 and 10. */
@@ -73,7 +90,7 @@ public final class ExternalMagic {
 
     /** What the core pays for one mana that {@code modId} spends, for this cultivator now. */
     public static double costMultiplier(ManaData data, String modId) {
-        return costMultiplier(data.maxMana(), ManaConfig.SERVER.externalReferencePool.get(), alpha(modId));
+        return costMultiplier(data.maxMana(), ManaConfig.SERVER.externalReferencePool.get(), alpha(modId), ManaConfig.SERVER.externalCostScale.get());
     }
 
     /** The Circle part of the external damage bonus for this cultivator (0.5 = +50%). */

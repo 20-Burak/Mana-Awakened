@@ -440,7 +440,7 @@ public final class CoreGameTests {
         data.setMana(data.maxMana());
         helper.assertTrue(CultivationRules.readiness(data) == CultivationRules.Readiness.NOT_ENOUGH_CAPACITY, "a small but full core must be refused");
         data.setCoreCapacity(CultivationRules.required(0));
-        data.setRequiredCapacity(CultivationRules.required(0));
+        data.setThreshold(CultivationRules.required(0));
         data.setMana(data.maxMana());
         helper.assertTrue(CultivationRules.readiness(data) == CultivationRules.Readiness.READY, "required capacity and full mana is ready");
         helper.succeed();
@@ -520,15 +520,16 @@ public final class CoreGameTests {
         helper.assertTrue(CultivationRules.leavingFullness(data) == 1.0, "a core trained to the ceiling of Circle 0 is a full one");
         data.setMana(data.maxMana());
         helper.assertTrue(BreakthroughHandler.resolve(player, data) == BreakthroughHandler.Outcome.ASCENDED, "ascends");
-        helper.assertTrue(data.fullness(0) == 1.0 && data.foundation() == 1.0 && data.coreCapacity() == 2_000.0,
-                "fullness 1.0 and 2,000: " + data.fullness(0) + " / " + data.coreCapacity());
+        helper.assertTrue(data.fullness(0) == 1.0 && data.coreCapacity() == 2_000.0 && data.threshold() == 5_000.0,
+                "fullness 1.0, 2,000 and a threshold of 5,000: " + data.fullness(0) + " / " + data.coreCapacity() + " / " + data.threshold());
 
-        // the second Circle left at its bare threshold: fullness 0, the average falls to (1 + 0) / 2
-        data.setCoreCapacity(CultivationRules.required(1));
+        // the second Circle left at its bare (personal) threshold: fullness 0
+        data.setCoreCapacity(data.threshold());
         data.setMana(data.maxMana());
         BreakthroughHandler.ascend(player, data, data.circle() + 1); // the roll is 98% here; the ascension itself is what is tested
-        helper.assertTrue(data.fullness(1) == 0.0 && Math.abs(data.foundation() - 0.5) < 1.0E-9, "the foundation is the average of the Circles behind: " + data.foundation());
-        helper.assertTrue(Math.abs(data.coreCapacity() - 5_000.0) < 1.0E-9, "2,500 makes 5,000: " + data.coreCapacity());
+        helper.assertTrue(data.fullness(1) == 0.0 && data.fullness(0) == 1.0, "the history keeps both Circles: " + data.fullness(0) + ", " + data.fullness(1));
+        helper.assertTrue(Math.abs(data.coreCapacity() - 10_000.0) < 1.0E-9 && data.threshold() == 25_000.0, "5,000 makes 10,000 and a threshold of 25,000: "
+                + data.coreCapacity() + " / " + data.threshold());
 
         // a full Circle 1 raises the base rate of Circle 2 (Bt), an empty one does not
         ManaData empty = new ManaData();
@@ -539,7 +540,7 @@ public final class CoreGameTests {
         solid.startMeditation();
         solid.recordLeaving(1, 1.0, false);
         double base = CultivationRules.trainingRate(empty);
-        helper.assertTrue(base > 0.0 && Math.abs(CultivationRules.trainingRate(solid) / base - ManaConfig.SERVER.fullTrainingBonus.get()) < 1.0E-9,
+        helper.assertTrue(base > 0.0 && Math.abs(CultivationRules.trainingRate(solid) / base - ManaConfig.SERVER.fullTrainingFactor.get()) < 1.0E-9,
                 "a full Circle behind multiplies the base rate by the full-training bonus");
 
         net.minecraft.nbt.CompoundTag saved = (net.minecraft.nbt.CompoundTag) ManaData.SERIALIZER.write(solid, helper.getLevel().registryAccess());

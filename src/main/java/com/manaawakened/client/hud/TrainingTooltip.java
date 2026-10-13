@@ -1,6 +1,7 @@
 package com.manaawakened.client.hud;
 
 import com.manaawakened.compat.ExternalCostLine;
+import com.manaawakened.core.CompactNumber;
 import com.manaawakened.core.CoreModel;
 import com.manaawakened.core.ManaData;
 import java.util.ArrayList;
@@ -10,10 +11,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
 /**
- * The lines of the core-training tooltip over the Mana Heart: the rate, what the multiplier is made of, the threshold and the
- * ceiling, how full the core is in this Circle (the share of the way from the threshold to the ceiling) and the Q the next Circle
- * would get (with the ceiling floor applied). Everything comes from the server's snapshot;
- * the lines are built when a snapshot arrives, never per frame.
+ * The lines of the core-training tooltip over the Mana Heart: the rate, the full-training bonus of the Circles behind, what the
+ * multiplier is made of, the threshold and the cap, how full the core is in this Circle (the share of the way from the threshold to the
+ * cap) and what breaking through now would give: the next threshold (five times the core) and the bonus it would carry (1.0.1).
+ * Everything comes from the server's snapshot and its config (NeoForge sends server configs to every client that joins); the lines are
+ * built when a snapshot arrives, never per frame.
  */
 final class TrainingTooltip {
     private TrainingTooltip() {
@@ -28,6 +30,9 @@ final class TrainingTooltip {
             return lines;
         }
         lines.add(Component.translatable("mana_awakened.hud.tip.rate", rate(data.trainingRate())).withStyle(ChatFormatting.AQUA));
+        CoreModel.Params params = CoreModel.configured();
+        double bonus = CoreModel.trainingBonus(params, data.fullnessHistory(), data.circle());
+        lines.add(Component.translatable("mana_awakened.hud.tip.bonus", times(bonus)).withStyle(ChatFormatting.AQUA));
         lines.add(Component.translatable("mana_awakened.hud.tip.multiplier", times(data.growthMultiplier())).withStyle(ChatFormatting.WHITE));
         lines.add(Component.translatable("mana_awakened.hud.tip.tier", data.circleTier(), times(data.growthTier())).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("mana_awakened.hud.tip.ambient", times(Math.max(1.0, data.ambient()))).withStyle(ChatFormatting.GRAY));
@@ -37,15 +42,17 @@ final class TrainingTooltip {
         if (data.growthFracture() < 1.0) {
             lines.add(Component.translatable("mana_awakened.hud.tip.fracture", times(data.growthFracture())).withStyle(ChatFormatting.RED));
         }
-        lines.add(Component.translatable("mana_awakened.hud.tip.threshold", whole(data.requiredCapacity()), whole(data.ceilingCapacity()))
+        lines.add(Component.translatable("mana_awakened.hud.tip.threshold", CompactNumber.ceil(data.threshold()), CompactNumber.floor(data.ceilingCapacity()))
                 .withStyle(ChatFormatting.DARK_AQUA));
-        double fullness = CoreModel.fullnessAt(data.requiredCapacity(), data.ceilingCapacity(), data.coreCapacity());
+        double fullness = CoreModel.fullnessAt(data.threshold(), data.ceilingCapacity(), data.coreCapacity());
         lines.add(Component.translatable("mana_awakened.hud.tip.fullness", String.format(Locale.ROOT, "%.0f", fullness * 100.0))
                 .withStyle(ChatFormatting.DARK_AQUA));
-        // the floor Qmin is a server config value; NeoForge sends server configs to every client that joins
-        double quality = CoreModel.nextQuality(CoreModel.configured(), data.fullnessHistory(), data.circle(), fullness);
-        lines.add(Component.translatable("mana_awakened.hud.tip.next_quality", String.format(Locale.ROOT, "%.2f", quality), times(1.0 + quality))
-                .withStyle(ChatFormatting.DARK_AQUA));
+        if (data.hasRequiredCapacity()) {
+            double next = CoreModel.nextThreshold(params, data.coreCapacity());
+            double nextBonus = bonus * (1.0 + (params.fullTrainingBonus() - 1.0) * fullness);
+            lines.add(Component.translatable("mana_awakened.hud.tip.next_threshold", CompactNumber.ceil(next), times(nextBonus))
+                    .withStyle(ChatFormatting.DARK_AQUA));
+        }
         externalCost(lines, data);
         if (!data.isMeditating()) {
             lines.add(Component.translatable("mana_awakened.hud.tip.meditate").withStyle(ChatFormatting.DARK_GRAY));
@@ -71,9 +78,5 @@ final class TrainingTooltip {
 
     private static String times(double value) {
         return String.format(Locale.ROOT, "%.2f", value);
-    }
-
-    private static String whole(double value) {
-        return String.format(Locale.ROOT, "%,d", (long) Math.floor(value));
     }
 }

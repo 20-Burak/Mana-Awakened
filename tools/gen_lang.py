@@ -17,7 +17,9 @@ REMOVE_PREFIXES = ('block.mana_awakened.arcane_study_desk', 'container.mana_awak
                    'mana_awakened.configuration.minSuccessChance', 'mana_awakened.configuration.maxSuccessChance',
                    'mana_awakened.refinement.effect.success', 'mana_awakened.command.set.purity',
                    'mana_awakened.configuration.heartScale', 'mana_awakened.configuration.heartOffset',
-                   'mana_awakened.configuration.meditationMovementPenalty')
+                   'mana_awakened.configuration.meditationMovementPenalty', 'mana_awakened.configuration.thresholdGrowth',
+                   'mana_awakened.configuration.fullTrainingBonus', 'mana_awakened.configuration.ceilingFloor', 'mana_awakened.hud.tip.next_quality',
+                   'mana_awakened.status.foundation')
 
 
 def build(path, static, index, glyphs):

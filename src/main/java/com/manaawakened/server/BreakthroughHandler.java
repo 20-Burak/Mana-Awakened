@@ -149,11 +149,14 @@ public final class BreakthroughHandler {
     /** The ascension itself: the next Circle, a multiplied core and the celebration. Also what winning a trial grants. */
     public static void ascend(ServerPlayer player, ManaData data, int target) {
         double multiplied = CultivationRules.capacityAfterBreakthrough(data);
-        // The Circle being left is judged by how full its core was: that fullness shapes every later ceiling and base rate,
-        // and a core trained (almost) all the way from the threshold to the ceiling is a perfect clear (a second passive pick for this Circle).
+        // 1.0.1: the next threshold is personal, five times the core broken through with (the cap is always twice it)
+        double threshold = CultivationRules.nextThreshold(data);
+        // The Circle being left is judged by how full its core was: that fullness shapes every later base rate, and a core trained
+        // (almost) all the way from the threshold to the cap is a perfect clear (a second passive pick for this Circle).
         boolean perfect = CultivationRules.isPerfectClear(data);
         data.recordLeaving(data.circle(), CultivationRules.leavingFullness(data), perfect);
         data.setCircle(target);
+        data.setThreshold(threshold);
         // The trained core is multiplied; mana carries over into it, and the Circle 10 singularity is always full.
         data.setCoreCapacity(multiplied);
         CultivationRules.normalizeCapacity(data);

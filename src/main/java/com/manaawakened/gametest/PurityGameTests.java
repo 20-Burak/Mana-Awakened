@@ -343,9 +343,9 @@ public final class PurityGameTests {
                 "the second passive pick it granted is kept: " + Integer.toBinaryString(loaded.legacySecondPicks()));
         helper.assertTrue(near(loaded.purity(), 12.0 + 6.0 + 5.0), "purity is derived (18 + 5 = 23), not the stored 87: " + loaded.purity());
 
-        // saved again: format 7, no purity of its own, the kept pick stays and nothing is dropped twice
+        // saved again: the current format (8 since 1.0.1), no purity of its own, the kept pick stays and nothing is dropped twice
         CompoundTag saved = (CompoundTag) ManaData.SERIALIZER.write(loaded, helper.getLevel().registryAccess());
-        helper.assertTrue(saved.getInt("version") == ManaData.DATA_VERSION && ManaData.DATA_VERSION == 7, "format 7: " + saved.getInt("version"));
+        helper.assertTrue(saved.getInt("version") == ManaData.DATA_VERSION && ManaData.DATA_VERSION == 8, "format 8: " + saved.getInt("version"));
         helper.assertTrue(!saved.contains("purity") && saved.getInt("legacy_second_picks") == 0b10, "purity is not stored: " + saved);
         ManaData again = ManaData.SERIALIZER.read(null, saved, helper.getLevel().registryAccess());
         helper.assertTrue(near(again.purity(), 23.0) && again.perfectClears() == 0b01 && again.legacySecondPicks() == 0b10, "round trip: " + again.purity());

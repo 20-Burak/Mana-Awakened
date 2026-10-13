@@ -36,7 +36,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /**
  * The mana HUD of 3.4.1: where the group is placed ({@link HudPlacement}), the spend feedback the server sends
  * ({@link SpendFeedback}, one {@link ManaSpentPayload} per tick with what was really paid) and what the HUD makes of it
- * ({@link SpendPopup}), and the "External spells cost ×34.1" line ({@link ExternalCostLine}).
+ * ({@link SpendPopup}), and the "External spells cost ×3.41" line ({@link ExternalCostLine}).
  */
 @GameTestHolder(ManaAwakened.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -138,30 +138,37 @@ public final class ManaHudGameTests {
     @GameTest(template = EMPTY)
     public static void theExternalCostLineShowsTheSharedMultiplier(GameTestHelper helper) {
         double reference = ManaConfig.SERVER.externalReferencePool.get();
+        double scale = ManaConfig.SERVER.externalCostScale.get();
         List<String> all = List.of(ExternalMagic.MAHOU, ExternalMagic.IRONS, ExternalMagic.ARS);
-        for (double capacity : new double[] {1_000.0, 5_054.0}) {
-            List<ExternalCostLine.Group> groups = ExternalCostLine.groups(capacity, reference, all, ExternalMagic::alpha);
-            String irons = ExternalMagic.formatMultiplier(ExternalMagic.costMultiplier(capacity, reference, ExternalMagic.alpha(ExternalMagic.IRONS)));
-            String mahou = ExternalMagic.formatMultiplier(ExternalMagic.costMultiplier(capacity, reference, ExternalMagic.alpha(ExternalMagic.MAHOU)));
+        for (double capacity : new double[] {1_000.0, 5_054.0, 80_000.0}) {
+            List<ExternalCostLine.Group> groups = ExternalCostLine.groups(capacity, reference, 1.0, all, ExternalMagic::alpha);
+            String irons = ExternalMagic.formatMultiplier(ExternalMagic.costMultiplier(capacity, reference, ExternalMagic.alpha(ExternalMagic.IRONS), 1.0));
+            String mahou = ExternalMagic.formatMultiplier(ExternalMagic.costMultiplier(capacity, reference, ExternalMagic.alpha(ExternalMagic.MAHOU), 1.0));
             helper.assertTrue(groups.size() == 2 && groups.get(0).multiplier().equals(irons) && groups.get(0).modIds().equals(List.of(ExternalMagic.IRONS, ExternalMagic.ARS))
                     && groups.get(1).multiplier().equals(mahou) && groups.get(1).modIds().equals(List.of(ExternalMagic.MAHOU)),
                     "Iron's and Ars share alpha 0.9, Mahou has its own: " + groups);
         }
-        helper.assertTrue(ExternalCostLine.groups(1_000.0, reference, all, ExternalMagic::alpha).get(0).multiplier().equals("7.94"), "1,000 at alpha 0.9: x7.94");
-        helper.assertTrue(ExternalCostLine.groups(5_054.0, reference, all, ExternalMagic::alpha).get(0).multiplier().equals("34.1"), "5,054 at alpha 0.9: x34.1");
-        helper.assertTrue(ExternalCostLine.groups(5_054.0, reference, all, ExternalMagic::alpha).get(1).multiplier().equals("28.1"), "5,054 at alpha 0.85: x28.1");
+        // scale 1.0: the numbers of 1.0.0
+        helper.assertTrue(ExternalCostLine.groups(1_000.0, reference, 1.0, all, ExternalMagic::alpha).get(0).multiplier().equals("7.94"), "1,000 at alpha 0.9: x7.94");
+        helper.assertTrue(ExternalCostLine.groups(5_054.0, reference, 1.0, all, ExternalMagic::alpha).get(0).multiplier().equals("34.1"), "5,054 at alpha 0.9: x34.1");
+        helper.assertTrue(ExternalCostLine.groups(5_054.0, reference, 1.0, all, ExternalMagic::alpha).get(1).multiplier().equals("28.1"), "5,054 at alpha 0.85: x28.1");
+        // the default 0.1: ten times less; at 1,000 both are at the floor of 1 and share one entry
+        helper.assertTrue(ExternalCostLine.groups(5_054.0, reference, scale, all, ExternalMagic::alpha).get(0).multiplier().equals("3.41"), "5,054 at scale 0.1: x3.41");
+        helper.assertTrue(ExternalCostLine.groups(5_054.0, reference, scale, all, ExternalMagic::alpha).get(1).multiplier().equals("2.81"), "5,054, Mahou: x2.81");
+        List<ExternalCostLine.Group> floor = ExternalCostLine.groups(1_000.0, reference, scale, all, ExternalMagic::alpha);
+        helper.assertTrue(floor.size() == 1 && floor.get(0).multiplier().equals("1.00") && floor.get(0).modIds().size() == 3, "1,000 at scale 0.1: x1.00 for all: " + floor);
 
         // only the mods that are loaded are named
-        List<ExternalCostLine.Group> ironsOnly = ExternalCostLine.groups(5_054.0, reference, List.of(ExternalMagic.IRONS), ExternalMagic::alpha);
+        List<ExternalCostLine.Group> ironsOnly = ExternalCostLine.groups(5_054.0, reference, scale, List.of(ExternalMagic.IRONS), ExternalMagic::alpha);
         helper.assertTrue(ironsOnly.size() == 1 && ironsOnly.get(0).modIds().equals(List.of(ExternalMagic.IRONS)), "Iron's alone: " + ironsOnly);
-        helper.assertTrue(ExternalCostLine.line(5_054.0, false, reference, List.of(), ExternalMagic::alpha) == null, "no magic mod, no line");
+        helper.assertTrue(ExternalCostLine.line(5_054.0, false, reference, scale, List.of(), ExternalMagic::alpha) == null, "no magic mod, no line");
 
-        Component line = ExternalCostLine.line(5_054.0, false, reference, List.of(ExternalMagic.IRONS, ExternalMagic.ARS), ExternalMagic::alpha);
+        Component line = ExternalCostLine.line(5_054.0, false, reference, scale, List.of(ExternalMagic.IRONS, ExternalMagic.ARS), ExternalMagic::alpha);
         helper.assertTrue(line != null && line.getContents() instanceof TranslatableContents translatable && translatable.getKey().equals("mana_awakened.external_cost")
                 && translatable.getArgs()[0] instanceof Component list && list.getSiblings().size() == 1
                 && list.getSiblings().get(0).getContents() instanceof TranslatableContents group && group.getKey().equals("mana_awakened.external_cost.group")
-                && "34.1".equals(group.getArgs()[0]), "the line reads ×34.1 (Iron's / Ars)");
-        Component free = ExternalCostLine.line(5_054.0, true, reference, all, ExternalMagic::alpha);
+                && group.getArgs()[0] instanceof Component shown && "3.41".equals(shown.getString()), "the line reads ×3.41 (Iron's / Ars)");
+        Component free = ExternalCostLine.line(5_054.0, true, reference, scale, all, ExternalMagic::alpha);
         helper.assertTrue(free != null && free.getContents() instanceof TranslatableContents translatable && translatable.getKey().equals("mana_awakened.external_cost.free"),
                 "Circle 10 pays nothing, and says so");
 
@@ -186,9 +193,9 @@ public final class ManaHudGameTests {
         long tick = helper.getLevel().getServer().getTickCount();
         SpendFeedback.flush(player, tick - 1);
 
-        // a 10-mana Iron's spell at x34.1 costs the core about 341
+        // a 10-mana Iron's spell at x3.41 costs the core about 34 (341 before 1.0.1)
         double paid = MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 10.0);
-        helper.assertTrue(near(paid, 10.0 * Math.pow(50.54, 0.9), 1.0E-9) && Math.round(paid) == 341, "the core paid " + paid);
+        helper.assertTrue(near(paid, 10.0 * 0.1 * Math.pow(50.54, 0.9), 1.0E-9) && Math.round(paid) == 34, "the core paid " + paid);
         ManaSpentPayload payload = SpendFeedback.flush(player, tick);
         helper.assertTrue(payload != null && near(payload.amount(), paid, 1.0E-3) && payload.source() == ManaSpentPayload.EXTERNAL,
                 "one packet with what was paid (" + paid + "), not the 10 asked: " + payload);
@@ -205,7 +212,7 @@ public final class ManaHudGameTests {
         MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 1.0);
         helper.assertTrue(SpendFeedback.flush(player, tick + 2) == null, "a second packet in the same tick is held back");
         ManaSpentPayload held = SpendFeedback.flush(player, tick + 3);
-        helper.assertTrue(held != null && near(held.amount(), Math.pow(50.54, 0.9), 1.0E-3), "and sent on the next tick: " + held);
+        helper.assertTrue(held != null && near(held.amount(), 0.1 * Math.pow(50.54, 0.9), 1.0E-3), "and sent on the next tick: " + held);
 
         // mixed sources are labelled by the larger share
         SpendFeedback.record(player, ManaSpentPayload.OWN_SPELL, 20.0);
@@ -292,7 +299,11 @@ public final class ManaHudGameTests {
                 .invoke(spell, helper.getLevel(), 1, player, spellbook, false);
         double lost = before - data.mana();
         ManaSpentPayload payload = SpendFeedback.flush(player, tick + 1);
-        helper.assertTrue(lost > cost * 30.0 && payload != null && near(payload.amount(), lost, 1.0E-2) && payload.source() == ManaSpentPayload.EXTERNAL,
+        // the ticks above raised the core to the start core of Circle 3 (25,000), as in 1.0.0: x = max(1, 0.1 x 250^0.9) = 14.4
+        double multiplier = Math.max(1.0, 0.1 * Math.pow(data.maxMana() / 100.0, 0.9));
+        helper.assertTrue(data.maxMana() == 25_000.0 && near(multiplier, 14.39, 0.01), "the core and the multiplier: " + data.maxMana() + " / " + multiplier);
+        helper.assertTrue(Math.abs(lost - cost * multiplier) < 0.01 * multiplier && payload != null && near(payload.amount(), lost, 1.0E-2)
+                        && payload.source() == ManaSpentPayload.EXTERNAL,
                 "a firebolt of " + cost + " cost the core " + lost + "; the packet says " + payload);
         SpendFeedback.forget(player);
         player.discard();

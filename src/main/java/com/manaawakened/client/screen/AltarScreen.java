@@ -1,6 +1,7 @@
 package com.manaawakened.client.screen;
 
 import com.manaawakened.client.hud.HudGeometry;
+import com.manaawakened.core.CompactNumber;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.network.AltarRequestPayload;
 import com.manaawakened.network.AltarSolvePayload;
@@ -1103,8 +1104,9 @@ public final class AltarScreen extends MagicScreen {
         }
     }
 
-    private static String fmt(long value) {
-        return String.format(Locale.ROOT, "%,d", value);
+    /** A mana cost: written out below a million, compact from it on (1.0.1). */
+    private static Component fmt(long value) {
+        return CompactNumber.of(value);
     }
 
     // ------------------------------------------------------------------ input

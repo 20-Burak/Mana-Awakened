@@ -31,7 +31,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  */
 public final class ModNetwork {
     /** Bump whenever a payload layout changes; mismatched client/server versions are refused at login. */
-    public static final String PROTOCOL_VERSION = "23";
+    public static final String PROTOCOL_VERSION = "24";
     /** Routine syncs are never closer than this many ticks: at most 5 a second for any continuous change. */
     public static final int MIN_ROUTINE_SYNC_TICKS = 4;
     /** A routine sync refreshes the other magic mods' own displays when the mana moved at least this much since they were last told ... */

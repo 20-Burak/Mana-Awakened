@@ -60,7 +60,7 @@ Generated files:
 .\gradlew.bat runGameTestServer
 ```
 
-boots a headless dedicated server and runs every game test in `com.manaawakened.gametest` (334 at 1.0.0), then exits; the log ends with `All 334 required tests passed :)`. Game tests are only registered when `neoforge.enabledGameTestNamespaces` names the mod (the dev runs set it), so they never run in a normal game, and the published jar does not contain them.
+boots a headless dedicated server and runs every game test in `com.manaawakened.gametest` (344 at 1.0.1), then exits; the log ends with `All 344 required tests passed :)`. Game tests are only registered when `neoforge.enabledGameTestNamespaces` names the mod (the dev runs set it), so they never run in a normal game, and the published jar does not contain them.
 
 Every release is tested PLAIN once and WITH the magic mods for each build set:
 - **PLAIN**: only Mana Awakened, Minecraft, NeoForge and Player Animator on the runtime classpath. The log says `No supported magic mods found; Mana Awakened runs with its own mana only.`
@@ -80,11 +80,11 @@ The maintainer's verification tools live **outside** the repository, in a siblin
   .\gradlew.bat --init-script ..\verify-tools\verify.init.gradle -PmagicSet=ours runGameTestServer
   ```
 - `run-tests.ps1 plain` / `run-tests.ps1 magic oldest|ours|newest` runs a suite and prints only the verdict lines (`run-tests.ps1 plain "" <Player Animator jar>` against another Player Animator build).
-- `mutate.ps1 -File <file> -Find "<exact text>" -Replace "<text>" [-Set ours]`: a mutation check. It hashes the file, applies the edit, runs the plain suite (or a WITH-mods set), prints the failed tests, restores the file and shows that the hash matches again.
+- `mutate.ps1 -File <file> -Find "<exact text>" -Replace "<text>" [-Set ours]`: a mutation check. It hashes the file, applies the edit, runs the plain suite (or a WITH-mods set), prints the failed tests, restores the file and shows that the hash matches again. `mutate-101.ps1` runs the mutations of 1.0.1 one after the other into `mutate-101.log`.
 - `game-driver.ps1`, dot-sourced in PowerShell: screenshots of the screen and keyboard / mouse input for the `runClient` window (`Snap`, `Burst`, `Frames`, `Sheet`, `Crop`, `Chat`, `Press`, `Click`, `Look`, `Maximize-Game`, `Size-Game`), used for the real-window checks.
 - `pa/2.0.0/` and `pa/2.0.4/`: the oldest and the newest NeoForge builds of Player Animator for 1.21.1; `magic/<mod>/<version>/`: the surveyed Iron's, Ars, Mahou and Curios builds; all downloaded from Modrinth with their SHA-1 checked (`fetch-modrinth.ps1`). `api-diff.ps1` (the symbol table above) and `mods-toml.ps1` (a jar's declared dependencies).
 
-**Rules the tests and checks enforce:** every new rule gets a game test and a mutation check (break it on purpose, see a test fail, restore it); client UI, HUD, rendering and keys are looked at in a real `runClient` window as well, because the game-test server is headless. Pure layout and timing code that the tests check lives in classes without client imports (`PopupLayout`, `CondenserLayout`, `EditorLayout`, `HudPlacement`, `CameraNear`, `MeditationEase`, ...).
+**Rules the tests and checks enforce:** every new rule gets a game test and a mutation check (break it on purpose, see a test fail, restore it); client UI, HUD, rendering and keys are looked at in a real `runClient` window as well, because the game-test server is headless. Pure layout and timing code that the tests check lives in classes without client imports (`PopupLayout`, `CondenserLayout`, `EditorLayout`, `HudPlacement`, `HudNumbers`, `CameraNear`, `MeditationEase`, ...).
 
 **The real window:** `.\gradlew.bat runClient -PmagicSet=ours` (with the magic mods), the world `run/saves/AltarCheck`. Back up `run/options.txt`, `run/config` and `run/saves/AltarCheck` before, and restore them byte-identically after. `run/` is not in the repository.
 
@@ -101,7 +101,7 @@ The maintainer's verification tools live **outside** the repository, in a siblin
 
 ## Save format
 
-Player data is the attachment `mana_awakened:mana_data` (with `mana_awakened:spell_book` and `mana_awakened:passives`) inside each player's `.dat`. Each field is read on its own: an unreadable value falls back to its default and an out-of-range value is clamped. The migrations of the internal versions (data formats 5, 6 and 7: the core-training model, its fullness fix and static purity; spell book format 2: targets stored by id) are described in the ROADMAP entries of those versions.
+Player data is the attachment `mana_awakened:mana_data` (with `mana_awakened:spell_book` and `mana_awakened:passives`) inside each player's `.dat`. Each field is read on its own: an unreadable value falls back to its default and an out-of-range value is clamped. The migrations of the internal versions (data formats 5, 6 and 7: the core-training model, its fullness fix and static purity; spell book format 2: targets stored by id) are described in the ROADMAP entries of those versions. Format 8 (1.0.1) stores the personal `threshold`; an older save gets the one its fullness history leads to (E_ref(circle) x the product of (1 + s)), keeps its core and has core and mana clamped to the new cap.
 
 ## Code map
 
@@ -109,7 +109,7 @@ Player data is the attachment `mana_awakened:mana_data` (with `mana_awakened:spe
 com.manaawakened
 ├─ ManaAwakened            common entry point, id() helper (Locale.ROOT)
 ├─ client/                 keys (K, B, N, U, ], [, O, J; defaults in KeyDefaults, no client classes), input → payloads, QuickTargets (the quick menu key, Shift+wheel, the server's answers), simple readout, refinement tooltips, TargetPrefs (the catalogue the server sent, your target colours, recent and starred targets), client entry point
-│   ├─ hud/                HudGeometry (arcs/rings), HudPlacement (where the mana HUD group goes, kept on screen; no client classes), HudLayout (the placement settings), SpendPopup and DrainRate (the spend number, ghost and drain readout; no client classes) + SpendFeedbackHud, HudTextLayout (rows, gaps, plate, keeping clear of the spell slot; no client classes), ManaHudText, ManaHeartLayer (+ TrainingTooltip, PurityTooltip), HudHover, HudTooltipScope (no client classes), TemperedBarsLayer, AmbientText, CalmHue (the calm Circle-10 hue)
+│   ├─ hud/                HudGeometry (arcs/rings), HudPlacement (where the mana HUD group goes, kept on screen; no client classes), HudLayout (the placement settings), SpendPopup and DrainRate (the spend number, ghost and drain readout; no client classes) + SpendFeedbackHud, HudNumbers (the mana and core lines with compact numbers; no client classes), HudTextLayout (rows, gaps, plate, keeping clear of the spell slot; no client classes), ManaHudText, ManaHeartLayer (+ TrainingTooltip, PurityTooltip), HudHover, HudTooltipScope (no client classes), TemperedBarsLayer, AmbientText, CalmHue (the calm Circle-10 hue)
 │   ├─ anim/               MeditationAnimation (the lotus pose: a Player Animator layer, priority 40), MeditationStates (the seated size, the camera, the circles' fade), CastGestures (the caster's gesture per kind, timed by the cast packet)
 │   ├─ fx/                 aura meshes, WorldAuraRenderer, SpellCircleRenderer (the choreography of every cast: the volley clock, the circles, the manifesting spell, its travel, impact and aftermath), SpellFxRenderer + SpellMeshes (the server-sent 3D effects), CameraNear (how glows, fireballs and crowds of blasts make way for the camera; no client classes), CondenserAreaRenderer, CircleRevealRenderer
 │   └─ screen/             MagicScreen (base; its click areas are reused), HitStack, EditorLayout, LabelFit, PopupLayout, CondenserLayout (the Condenser screen's text block; all four without client classes), TargetPicker, AltarScreen, QuickTargetScreen, PassiveScreen, CodexScreen, CondenserScreen, SpellWheelScreen
@@ -119,7 +119,7 @@ com.manaawakened
 │   ├─ ars/                ArsNouveauAdapter    (only loaded when ars_nouveau is present)
 │   └─ mahou/              MahouTsukaiAdapter   (only loaded when mahoutsukai is present)
 ├─ config/ManaConfig       server balance + client HUD config
-├─ core/                   ManaData (attachment + safe codec), CoreModel (the core-training model), PurityBuffs, ExternalMagic (what other mods' spells cost the core and how hard they hit), MeditationEase (no game classes), CircleTier, VesselTier, Refinement, Refinements
+├─ core/                   ManaData (attachment + safe codec), CoreModel (the core-training model: personal thresholds, cap, bonus, slowdown), CompactNumber (1.23M / 4.56B, three digits, cut), PurityBuffs, ExternalMagic (what other mods' spells cost the core and how hard they hit), MeditationEase (no game classes), CircleTier, VesselTier, Refinement, Refinements
 ├─ damage/ModDamageTypes   mana_backlash (true damage via vanilla bypass tags)
 ├─ effect/                 Core Fracture, Hemorrhage (no healing)
 ├─ event/CultivationEvents tick loop, login/respawn/death, damage interruption
@@ -133,7 +133,7 @@ com.manaawakened
 │   ├─ the elements        ElementTerrain, ElementFx, SpellTerrain (budget, destruction craters), TerrainJournal (lent blocks, Rewind), Markers (glowing outlines)
 │   └─ working spells      Rite, RiteTargets (ores, structures and worlds from the registries), FieldTargets (edits away from the altar), TargetLists, LegacyChoices (old saves only), TargetColors, Rites, RiteDig, RiteBuild, RiteSense, RiteSky, RiteSelf, RiteTravel, RiteEvents, SafeSpot, PlayerHistory
 ├─ passive/                Passive (the 50), PassiveData (attachment), PassiveHandler (effects)
-├─ world/                  ManaField (ambient mana), MeditationCircle (tiers), CropGrowth
+├─ world/                  ManaField (ambient mana), MeditationCircle (the Meditation Formation's tiers; the class keeps its old name), CropGrowth
 ├─ network/                Sync (S2C), SpellCircleFx (S2C: one packet per cast), SpellFx (S2C: one 3D effect), ManaSpent (S2C), RiteTargets (S2C), SpellTargets (C2S), FieldTargets (C2S) + FieldTargetsResult (S2C), SpellSelect (C2S), ToggleMeditation (C2S), BreakthroughCharge (C2S), Condenser settings / state
 ├─ registry/               ModRegistries, AttachmentRegistries
 └─ server/                 rules, ticker, MeditationHandler, breakthrough, vessel/ritual, RefinementHandler, TrialHandler, mana spending, SpendFeedback, sounds and particles

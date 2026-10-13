@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * Everything the mod knows about one player's cultivation.
  *
  * <p><b>Persistent</b> (saved in the player .dat): circle, mana, body heat, vessel tier, core fracture, refinements, the fullness
- * history and the perfect clears. <b>Derived</b>: purity, from the refinements and the perfect clears ({@link PurityBuffs}).
+ * history, the perfect clears and the personal threshold (1.0.1). <b>Derived</b>: purity, from the refinements and the perfect clears ({@link PurityBuffs}).
  * <b>Session</b> (never saved, reset on relog/respawn): meditation and breakthrough-charge state.
  *
  * <p>Body heat is a percentage from 0 to 100, purity a number from 0 to {@link #MAX_PURITY}. Mana is clamped to the capacity that
@@ -25,13 +25,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ManaData {
     /** Bump when the stored layout changes and migrate old values in {@link #fromStorage}. */
-    public static final int DATA_VERSION = 7; // v2 (1.1.0): core_capacity, v3 (1.2.0): refinements (and the remembered health, which is optional in every version), v4 (2.2.0): foundation, v5 (3.2.0): fullness + perfect_clears replace foundation, v6 (3.2.1): fullness is measured against the Circle's ceiling, v7 (3.3.0): purity is derived (no longer stored), unearned perfect clears dropped, legacy_second_picks
+    public static final int DATA_VERSION = 8; // v2 (1.1.0): core_capacity, v3 (1.2.0): refinements (and the remembered health, which is optional in every version), v4 (2.2.0): foundation, v5 (3.2.0): fullness + perfect_clears replace foundation, v6 (3.2.1): fullness is measured against the Circle's ceiling, v7 (3.3.0): purity is derived (no longer stored), unearned perfect clears dropped, legacy_second_picks, v8 (1.0.1): the personal threshold
     /** First format of the 3.2.0 core-training model; older saves are migrated in {@link #fromStorage}. */
     private static final int FULLNESS_VERSION = 5;
     /** First format whose fullness is measured from the threshold to the Circle's own ceiling (3.2.1); format 5 measured it against the threshold. */
     private static final int CEILING_FULLNESS_VERSION = 6;
     /** First format with a derived purity (3.3.0); older saves have their perfect clears checked against their fullness. */
     private static final int STATIC_PURITY_VERSION = 7;
+    /** First format that stores the personal threshold (1.0.1); older saves get the threshold their fullness history leads to. */
+    private static final int PERSONAL_THRESHOLD_VERSION = 8;
     /** The highest purity: 100 from the refinements, 50 from the perfect clears. */
     public static final double MAX_PURITY = 150.0;
     /** One bit per Circle that can be left (0..9). */
@@ -78,7 +80,10 @@ public final class ManaData {
             // One bit per Circle left with a perfect clear (fullness of at least perfectClearFraction).
             Codec.INT.lenientOptionalFieldOf("perfect_clears", 0).forGetter(ManaData::perfectClears),
             // One bit per Circle whose second passive pick was kept when the 3.3.0 migration dropped its unearned perfect clear.
-            Codec.INT.lenientOptionalFieldOf("legacy_second_picks", 0).forGetter(ManaData::legacySecondPicks)
+            Codec.INT.lenientOptionalFieldOf("legacy_second_picks", 0).forGetter(ManaData::legacySecondPicks),
+            // The personal threshold of the current Circle (1.0.1): five times the core the last breakthrough was made with. Optional with
+            // no default: older saves and a damaged value get the threshold their fullness history leads to.
+            Codec.DOUBLE.lenientOptionalFieldOf("threshold").forGetter(data -> Optional.of(data.threshold))
     ).apply(instance, ManaData::fromStorage));
 
     /**
@@ -126,6 +131,11 @@ public final class ManaData {
     private int legacySecondPicks;
     /** One bit per {@link Refinement} (its ordinal) already absorbed. */
     private int refinementMask;
+    /**
+     * Threshold E of the current Circle: the core needed before the next breakthrough may start (1.0.1: personal, t x the core the last
+     * breakthrough was made with; the config's first threshold in Circle 0). Mirrored to the client.
+     */
+    private double threshold = CoreModel.referenceThreshold(CoreModel.DEFAULTS, CircleTier.MORTAL);
     /** Health at the last check (see {@link #setLastHealth}); {@link #NO_HEALTH} when unknown. */
     private float lastHealth = NO_HEALTH;
 
@@ -135,10 +145,8 @@ public final class ManaData {
     /** The part of {@link #purity} the refinements give (computed with it). */
     private double refinementPurity;
     private double maxMana = CircleTier.START_CAPACITY;
-    /** Server-computed threshold E of the next breakthrough, mirrored to the client for the HUD. */
-    private double requiredCapacity = CoreModel.threshold(CoreModel.DEFAULTS, CircleTier.MORTAL);
-    /** Server-computed ceiling Cap of this Circle, mirrored to the client for the HUD. */
-    private double ceilingCapacity = CoreModel.ceiling(CoreModel.DEFAULTS, new float[CoreModel.CIRCLES], CircleTier.MORTAL);
+    /** Server-computed cap of this Circle (twice the threshold), mirrored to the client for the HUD. */
+    private double ceilingCapacity = CoreModel.ceiling(threshold);
     /** Core per second a full, meditating core would gain right now (server computes it, the HUD shows it). */
     private double trainingRate;
     /** The parts of the growth multiplier: Meditation Circle tier, refinements and vessel, passives, fracture (server computes them, the HUD shows them). */
@@ -209,11 +217,18 @@ public final class ManaData {
      * every perfect clear whose (converted) fullness is below the perfect-clear fraction dropped: those were earned through the
      * 3.2.0 flaw of a free perfect clear at the bare threshold and must not feed purity. The second passive pick such a flag
      * granted is kept ({@link #legacySecondPicks()}).
+     *
+     * <p>1.0.1 (format 8): the threshold is personal and stored. A save without one (any older format, or a damaged value) gets the
+     * threshold its fullness history leads to, E_ref(circle) x the product of (1 + s) over the Circles left
+     * ({@link CoreModel#thresholdFromHistory}); Circle 0 always has the config's first threshold. The Circle, the core, the history,
+     * the perfect clears and the refinements are kept; the cap is twice the threshold, and the core (and mana) are clamped to it. A core
+     * below the new start core of its threshold is kept as it is (never below the start core of the shortest route into its Circle,
+     * {@link CoreModel#minimumCore}, which every 1.0.0 core already has); only a missing core gets the start core of its threshold.
      */
     private static ManaData fromStorage(Optional<Integer> storedVersion, int circle, double mana, double bodyHeat, int vesselTier, int fractureTicks,
                                         Optional<Double> storedCapacity, Optional<List<String>> storedRefinements, Optional<Float> storedHealth,
                                         Optional<Double> storedFoundation, Optional<List<Float>> storedFullness, int storedPerfectClears,
-                                        int storedLegacySecondPicks) {
+                                        int storedLegacySecondPicks, Optional<Double> storedThreshold) {
         int version = storedVersion.orElse(LEGACY_VERSION);
         if (version > DATA_VERSION) {
             ManaAwakened.LOGGER.warn("Mana data was saved by a newer Mana Awakened (format {} > {}); reading what this version understands.", version, DATA_VERSION);
@@ -245,12 +260,16 @@ public final class ManaData {
             data.perfectClears &= ~unearned;
             data.legacySecondPicks = unearned;
         }
-        double floor = CoreModel.startCore(params, data.fullness, data.circle);
-        double ceiling = data.isTranscendent() ? Double.MAX_VALUE : Math.max(floor, CoreModel.ceiling(params, data.fullness, data.circle));
-        double stored = storedCapacity.orElse(floor);
-        data.coreCapacity = Double.isFinite(stored) ? Math.max(floor, Math.min(ceiling, stored)) : floor;
+        double kept = storedThreshold.orElse(Double.NaN);
+        boolean valid = version >= PERSONAL_THRESHOLD_VERSION && Double.isFinite(kept) && kept >= 1.0;
+        data.threshold = data.circle == CircleTier.MORTAL ? CoreModel.referenceThreshold(params, CircleTier.MORTAL)
+                : valid ? kept : CoreModel.thresholdFromHistory(params, data.fullness, data.circle);
+        double floor = Math.max(1.0, CoreModel.minimumCore(params, data.circle));
+        double ceiling = data.isTranscendent() ? Double.MAX_VALUE : Math.max(floor, CoreModel.ceiling(data.threshold));
+        double stored = storedCapacity.orElse(Math.max(floor, CoreModel.startCore(params, data.circle, data.threshold)));
+        double start = Math.max(floor, Math.min(ceiling, CoreModel.startCore(params, data.circle, data.threshold)));
+        data.coreCapacity = Double.isFinite(stored) ? Math.max(floor, Math.min(ceiling, stored)) : start;
         data.maxMana = data.coreCapacity;
-        data.requiredCapacity = CoreModel.threshold(params, data.circle);
         data.ceilingCapacity = data.isTranscendent() ? data.coreCapacity : ceiling;
         data.mana = Double.isFinite(mana) ? Math.max(0.0, Math.min(data.coreCapacity, mana)) : 0.0;
         data.bodyHeat = clampPercent(bodyHeat);
@@ -311,19 +330,6 @@ public final class ManaData {
         return maxMana;
     }
 
-    /** The average fullness of the Circles left behind, 0..1 (0 in Circle 0); its square, never below the ceiling floor, is the Q of {@link CoreModel}. */
-    public double foundation() {
-        int left = Math.min(circle, CoreModel.CIRCLES);
-        if (left == 0) {
-            return 0.0;
-        }
-        double sum = 0.0;
-        for (int i = 0; i < left; i++) {
-            sum += fullness[i];
-        }
-        return sum / left;
-    }
-
     /** The fullness history s(0..9). The array itself, so the server tick reads it without copying; never modify it. */
     public float[] fullnessHistory() {
         return fullness;
@@ -380,12 +386,12 @@ public final class ManaData {
         return coreCapacity;
     }
 
-    /** Threshold E: the core needed (server config applied) before the next breakthrough may start; mirrored to the client. */
-    public double requiredCapacity() {
-        return requiredCapacity;
+    /** Threshold E: the core needed before the next breakthrough may start, personal from Circle 1 on (1.0.1); mirrored to the client. */
+    public double threshold() {
+        return threshold;
     }
 
-    /** Ceiling Cap of this Circle: the core cannot grow past it; mirrored to the client. */
+    /** Cap of this Circle, twice the threshold: the core cannot grow past it; mirrored to the client. */
     public double ceilingCapacity() {
         return ceilingCapacity;
     }
@@ -444,7 +450,7 @@ public final class ManaData {
     }
 
     public boolean hasRequiredCapacity() {
-        return coreCapacity + 1.0E-6 >= requiredCapacity;
+        return coreCapacity + 1.0E-6 >= threshold;
     }
 
     /**
@@ -641,10 +647,15 @@ public final class ManaData {
         passiveGrowth = Double.isFinite(growth) ? Math.max(0.0, growth) : 1.0;
     }
 
+    /**
+     * Server: a new Circle. Its threshold becomes the one the fullness history leads to ({@link CoreModel#thresholdFromHistory}); a
+     * breakthrough then sets the exact personal one ({@link #setThreshold}), an operator's {@code /mana set circle} keeps this one.
+     */
     public void setCircle(int value) {
         int clamped = CircleTier.clamp(value);
         if (clamped != circle) {
             circle = clamped;
+            setThreshold(CoreModel.thresholdFromHistory(CoreModel.configured(), fullness, circle));
             dirty = true;
         }
     }
@@ -688,10 +699,11 @@ public final class ManaData {
         setMaxMana(coreCapacity);
     }
 
-    public void setRequiredCapacity(double value) {
-        double clamped = Double.isFinite(value) ? Math.max(1.0, value) : requiredCapacity;
-        if (clamped != requiredCapacity) {
-            requiredCapacity = clamped;
+    /** Server: the threshold of the current Circle (at least 1; anything that is not a number is ignored). */
+    public void setThreshold(double value) {
+        double clamped = Double.isFinite(value) ? Math.max(1.0, value) : threshold;
+        if (clamped != threshold) {
+            threshold = clamped;
             dirty = true;
         }
     }
@@ -999,8 +1011,8 @@ public final class ManaData {
         CoreModel.Params params = CoreModel.configured();
         coreCapacity = params.startCore();
         maxMana = coreCapacity;
-        requiredCapacity = CoreModel.threshold(params, CircleTier.MORTAL);
-        ceilingCapacity = CoreModel.ceiling(params, fullness, CircleTier.MORTAL);
+        threshold = CoreModel.referenceThreshold(params, CircleTier.MORTAL);
+        ceilingCapacity = CoreModel.ceiling(threshold);
         dirty = true;
     }
 
@@ -1083,7 +1095,7 @@ public final class ManaData {
     /** Client side: overwrite the local copy with the server's authoritative snapshot. */
     public void applyServerSnapshot(int circle, double mana, double maxMana, double purity, double refinementPoints, double bodyHeat, int vesselTier,
                                     int fractureTicks, boolean meditating, int meditationTicks, boolean seatedUntilRoom, boolean charging,
-                                    int chargeTicks, int chargeGoalTicks, int ritualTicks, int ritualGoalTicks, double requiredCapacity,
+                                    int chargeTicks, int chargeGoalTicks, int ritualTicks, int ritualGoalTicks, double threshold,
                                     int refinements, boolean training, int ritualSubject, int circleTier, double ambient,
                                     double ceiling, double rate, double tier, double refinement, double passive, double purityPart,
                                     double fracture, List<Float> fullnessHistory, int perfectClearBits, int legacySecondPickBits) {
@@ -1092,8 +1104,8 @@ public final class ManaData {
         this.ambient = Double.isFinite(ambient) ? Math.max(1.0, ambient) : 1.0;
         this.maxMana = Double.isFinite(maxMana) ? Math.max(1.0, maxMana) : CircleTier.START_CAPACITY;
         this.coreCapacity = this.maxMana;
-        this.requiredCapacity = Double.isFinite(requiredCapacity) ? Math.max(1.0, requiredCapacity) : this.maxMana;
-        this.ceilingCapacity = Double.isFinite(ceiling) ? Math.max(1.0, ceiling) : this.requiredCapacity;
+        this.threshold = Double.isFinite(threshold) ? Math.max(1.0, threshold) : this.maxMana;
+        this.ceilingCapacity = Double.isFinite(ceiling) ? Math.max(1.0, ceiling) : this.threshold;
         this.trainingRate = Double.isFinite(rate) ? Math.max(0.0, rate) : 0.0;
         this.growthTier = finiteOrOne(tier);
         this.growthRefinement = finiteOrOne(refinement);

@@ -37,6 +37,9 @@ import net.neoforged.neoforge.common.NeoForge;
  * regeneration event keeps its regeneration, but what it regenerates is never credited to the core (the core value is pushed back
  * every tick). Without the mana capability or the max-mana event the bridge cannot work, and Ars keeps its own mana (one warning).
  * Ars Nouveau 5.8.2 to 5.13.3 have every symbol with the same signature.
+ *
+ * <p>Big cores (1.0.1): Ars keeps its mana as a {@code double} (exact) but its maximum as an {@code int}, so it is shown at most
+ * 2,147,483,647 of the core; spends inside that are read exactly. A scaled cost above that number is checked as that number.
  */
 public final class ArsNouveauAdapter implements MagicAdapter {
     public static final String MOD_ID = ExternalMagic.ARS;

@@ -110,7 +110,7 @@ public final class SpendFeedback {
         for (int source = 0; source < sums.length; source++) {
             sums[source] = 0.0;
         }
-        return new ManaSpentPayload((float) total, (byte) largest, continuous);
+        return new ManaSpentPayload(total, (byte) largest, continuous);
     }
 
     public static void onServerTick(ServerTickEvent.Post event) {

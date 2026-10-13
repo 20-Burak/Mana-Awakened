@@ -3,6 +3,7 @@ package com.manaawakened.command;
 import com.manaawakened.compat.ExternalCostLine;
 import com.manaawakened.compat.MagicAdapters;
 import com.manaawakened.core.CircleTier;
+import com.manaawakened.core.CoreModel;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.core.Refinement;
 import com.manaawakened.core.Refinements;
@@ -77,11 +78,7 @@ public final class ManaCommands {
                                 .executes(ctx -> showStatus(ctx.getSource(), EntityArgument.getPlayer(ctx, "target")))))
                 .then(Commands.literal("set")
                         .requires(source -> source.hasPermission(OP_LEVEL))
-                        .then(intSetter("circle", 0, CircleTier.MAX_CIRCLE, (data, value) -> {
-                            data.setCircle(value);
-                            // A set Circle gets the capacity of the shortest route into it.
-                            data.setCoreCapacity(CultivationRules.minimumEntryCapacity(value));
-                        }))
+                        .then(circleSetter())
                         .then(doubleSetter("capacity", 1.0, 1.0E15, ManaData::setCoreCapacity))
                         .then(intSetter("vessel", 0, VesselTier.maxId(), ManaData::setVesselTier))
                         .then(doubleSetter("mana", 0.0, Double.MAX_VALUE, ManaData::setMana))
@@ -360,6 +357,38 @@ public final class ManaCommands {
         void apply(ManaData data);
     }
 
+    /**
+     * {@code /mana set circle <targets> <circle> [fullness]}: the Circle, with every Circle before it left at {@code fullness} (0 = at its
+     * threshold, 1 = at its cap; without the argument the stored history is kept). For testing a path: {@code /mana set circle @s 9 1} is
+     * the player who left every Circle at its cap (threshold 500 billion), {@code ... 9 0} the one who left every Circle at its threshold.
+     */
+    private static LiteralArgumentBuilder<CommandSourceStack> circleSetter() {
+        return Commands.literal("circle")
+                .then(Commands.argument("targets", EntityArgument.players())
+                        .then(Commands.argument("value", IntegerArgumentType.integer(0, CircleTier.MAX_CIRCLE))
+                                .executes(ctx -> apply(ctx, "set.circle", data -> placeOnPath(data, IntegerArgumentType.getInteger(ctx, "value"), -1.0)))
+                                .then(Commands.argument("fullness", DoubleArgumentType.doubleArg(0.0, 1.0))
+                                        .executes(ctx -> apply(ctx, "set.circle", data -> placeOnPath(data, IntegerArgumentType.getInteger(ctx, "value"),
+                                                DoubleArgumentType.getDouble(ctx, "fullness")))))));
+    }
+
+    /**
+     * Puts a cultivator at the start of {@code circle} (1.0.1): every Circle before it left at {@code fullness} when that is 0..1 (a
+     * negative value keeps the stored history; perfect clears are not granted), the threshold that history leads to and the start core
+     * of that threshold (the core a breakthrough into the Circle leaves).
+     */
+    public static void placeOnPath(ManaData data, int circle, double fullness) {
+        int target = CircleTier.clamp(circle);
+        if (fullness >= 0.0) {
+            for (int left = 0; left < Math.min(target, CoreModel.CIRCLES); left++) {
+                data.recordLeaving(left, fullness, false);
+            }
+        }
+        data.setCircle(target);
+        data.setThreshold(CoreModel.thresholdFromHistory(CoreModel.configured(), data.fullnessHistory(), target));
+        data.setCoreCapacity(CultivationRules.entryCapacity(data));
+    }
+
     private static LiteralArgumentBuilder<CommandSourceStack> intSetter(String name, int min, int max, IntSetter setter) {
         return Commands.literal(name)
                 .then(Commands.argument("targets", EntityArgument.players())
@@ -486,10 +515,9 @@ public final class ManaCommands {
         source.sendSuccess(() -> Component.translatable("mana_awakened.status.growth",
                 String.format(Locale.ROOT, "%.3f", CultivationRules.trainingRate(data)), String.format(Locale.ROOT, "%.2f", CultivationRules.growthMultiplier(data)))
                 .withStyle(ChatFormatting.AQUA), false);
-        source.sendSuccess(() -> Component.translatable("mana_awakened.status.foundation",
-                String.format(Locale.ROOT, "%.0f", data.foundation() * 100.0), String.format(Locale.ROOT, "%.0f", CultivationRules.leavingFullness(data) * 100.0),
-                String.format(Locale.ROOT, "%,d", (long) Math.floor(CultivationRules.ceiling(data))))
-                .withStyle(ChatFormatting.AQUA), false);
+        if (!data.isTranscendent()) {
+            source.sendSuccess(() -> thresholdLine(data).withStyle(ChatFormatting.AQUA), false);
+        }
         if (Refinements.health(data) > 0.0 || Refinements.armor(data) > 0.0 || Refinements.toughness(data) > 0.0) {
             source.sendSuccess(() -> Component.translatable("mana_awakened.status.tempering",
                     number(Refinements.health(data)), number(Refinements.armor(data)), number(Refinements.toughness(data)))
@@ -544,7 +572,23 @@ public final class ManaCommands {
         return Component.translatable("mana_awakened.status.breakthrough_waiting", readiness.message(), chance).withStyle(ChatFormatting.GRAY);
     }
 
-    private static String manaText(ManaData data) {
+    /**
+     * The status line of the personal threshold (1.0.1), with full numbers: "Threshold 5,000 · cap 10,000 · this Circle 0% full ·
+     * full-training bonus ×2.00 · breaking through now: next threshold 24,920".
+     */
+    public static MutableComponent thresholdLine(ManaData data) {
+        return Component.translatable("mana_awakened.status.threshold", whole(Math.ceil(data.threshold())), whole(Math.floor(CultivationRules.ceiling(data))),
+                String.format(Locale.ROOT, "%.0f", CultivationRules.leavingFullness(data) * 100.0),
+                String.format(Locale.ROOT, "%.2f", CultivationRules.trainingBonus(data)), whole(Math.ceil(CultivationRules.nextThreshold(data))));
+    }
+
+    /** A whole amount with separators, as {@code /mana} prints every number (it never shortens one). */
+    private static String whole(double value) {
+        return String.format(Locale.ROOT, "%,d", (long) value);
+    }
+
+    /** The mana line of {@code /mana}: "1,000,000,000,000 / 1,000,000,000,000 (100%)", or "∞" at Circle 10. */
+    public static String manaText(ManaData data) {
         if (data.isTranscendent()) {
             return "∞";
         }
