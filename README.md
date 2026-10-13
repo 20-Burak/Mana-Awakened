@@ -2,7 +2,7 @@
 
 Manhwa-style magic cultivation for **Minecraft 1.21.1** on **NeoForge**. Meditate to gather mana, train your core and break through ten Circles, from Mortal to Transcendent Deity. Inscribe your own spells at the Inscription Altar (105 sigils, from fire bolts and meteor volleys to ore sensing and gates to other worlds), each cast with its own magic circles and gestures. Iron's Spells 'n Spellbooks, Ars Nouveau and Mahou Tsukai draw on the same mana pool when they are installed.
 
-**Version 1.0.1** (the first public release was 1.0.0). License: [GPL-3.0](LICENSE). Author: Burak.
+**Version 1.0.2** (the first public release was 1.0.0). License: [GPL-3.0](LICENSE). Author: Burak.
 
 ## Installation
 
@@ -15,7 +15,7 @@ Manhwa-style magic cultivation for **Minecraft 1.21.1** on **NeoForge**. Meditat
 | Optional | Iron's Spells 'n Spellbooks 1.21-3.4.4 or later, Ars Nouveau 5.8.2 or later, Mahou Tsukai 1.21.0-v1.35.12 or later (tested up to Iron's 1.21.1-3.16.3, Ars 5.13.3, Mahou 1.21.1-v1.36.28; newer builds are accepted and tried) |
 
 1. Install NeoForge for Minecraft 1.21.1.
-2. Put `mana_awakened-1.0.1.jar` and a Player Animator 2.x jar into the `mods` folder. A pack with Iron's Spells already has Player Animator (Iron's needs it too); keep only one copy.
+2. Put `mana_awakened-1.0.2.jar` and a Player Animator 2.x jar into the `mods` folder. A pack with Iron's Spells already has Player Animator (Iron's needs it too); keep only one copy.
 3. On a server, install both on the server as well; every player needs them.
 
 The first start writes `config/mana_awakened-client.toml` and `config/mana_awakened-server.toml`. Nothing else needs setting up: new players get a **Cultivator's Codex** in their inventory, which explains everything in the game.
@@ -204,6 +204,7 @@ Every Circle has five passives (fifty in all); one per Circle can be active (two
 With **Iron's Spells 'n Spellbooks**, **Ars Nouveau** or **Mahou Tsukai** installed, their mana *is* your core: their maximum is your capacity, their own regeneration is off (meditation refills the pool), and every spell they cast is paid from the core and heats your body.
 
 - **Their costs grow with your core**: a spell costing `amount` takes `amount × max(1, 0.1 × (capacity / 100)^0.9)` from the core (0.85 for Mahou Tsukai). A 10-mana Firebolt costs 10 up to a capacity of about 1,300, about 34 at 5,000 and about 144 at 25,000. Iron's own spell screens still show the unscaled cost; the real price shows as a rising "-34" on the Mana Heart, and the Mana Heart's tooltip and `/mana` show the multiplier ("External spells cost ×3.38"). The factor 0.1 is `integration.externalCostScale` (1.0 brings back the ten times steeper scaling of 1.0.0).
+- **A spell starts only when the core holds its whole price** (1.0.2). Otherwise it is refused, costs nothing and does not heat you, and "Not enough mana in your core: this spell costs N" appears over the hotbar (Iron's Spells says so in its own words when the core holds less than the spell's own cost; Mahou Tsukai's staffs and circles refuse silently). When it goes off the core pays exactly that price, once. Channelled spells pay every step at that price and stop when the core cannot pay the next one. So that the mods' own checks agree, Mahou Tsukai is shown (and Iron's Spells, while it casts) how much of its own mana the core can pay for, not the core itself: a core of 1,759 at ×481 shows Mahou 3.
 - **Their damage grows with your Circle**: +0% (Circles 0 to 2), +20% (3 to 4), +50% (5 to 6), +100% (7 to 9), +150% (10), times your purity bonus, at most ×4. Iron's (through its spell power) and Ars Nouveau get it; Mahou Tsukai has no hook for it.
 - At **Circle 10** their spells are free.
 - `/mana` lists the mods sharing the pool; `integration.unifyMagicMods = false` in the server config switches the bridge off, and `unifyIrons`, `unifyArs`, `unifyMahou` switch one mod off at a time (each mod then keeps its own mana).

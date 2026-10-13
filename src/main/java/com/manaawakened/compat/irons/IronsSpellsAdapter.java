@@ -6,7 +6,6 @@ import com.manaawakened.compat.ApiProbe.Feature;
 import com.manaawakened.compat.ApiProbe.Symbol;
 import com.manaawakened.compat.MagicAdapter;
 import com.manaawakened.compat.MagicAdapters;
-import com.manaawakened.core.CompactNumber;
 import com.manaawakened.core.ExternalMagic;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.registry.AttachmentRegistries;
@@ -22,8 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -38,7 +35,14 @@ import net.neoforged.neoforge.network.PacketDistributor;
  *   <li>{@code max_mana} attribute = core capacity, {@code mana_regen} = 0 (transient modifiers);</li>
  *   <li>every {@link ChangeManaEvent} is turned into a core spend/gain and then overwritten with the core value; a spend costs the core
  *       its amount times the cost multiplier ({@link ExternalMagic}), which covers instant and continuous spells alike;</li>
- *   <li>a cast the core cannot pay at that price is refused before it starts ({@link SpellPreCastEvent});</li>
+ *   <li>a cast the core cannot pay at that price is refused before it starts ({@link SpellPreCastEvent}), with the red "not enough
+ *       mana" line; the core then pays nothing;</li>
+ *   <li>what Iron's is shown (1.0.2): between casts the core as a whole number, so Iron's own check (made first, in its own
+ *       unscaled units) lets the cast reach ours; from the moment a cast is allowed until it ends, the whole units the core can pay
+ *       at the multiplier ({@link MagicAdapters#mirrorUnits}). Iron's charges a cast without checking again, and a channelled
+ *       (continuous) spell pays every 10 ticks while its mana is at least twice the cost and then once more before it stops: seen in
+ *       those units, every payment is one the core can make in full, and a channel stops when the core cannot pay its next ticks
+ *       (until 1.0.1 it ran on while Iron's saw the unscaled core, and the core paid what it had);</li>
  *   <li>{@code spell_power} gets the external damage multiplier of the caster's Circle and purity (a transient modifier);</li>
  *   <li>a transcendent core sets every spell's cost to 0.</li>
  * </ul>
@@ -73,6 +77,7 @@ public final class IronsSpellsAdapter implements MagicAdapter {
     public static final String CAST = "cast_tracking";
     public static final String SPELL_POWER = "spell_power_bonus";
     public static final String CLIENT_SYNC = "client_sync";
+    public static final String CASTING = "casting_state";
     /** What the bridge uses of Iron's, by feature; names separated by "|" would be tried in order (no rename is known). */
     public static final List<Feature> FEATURES = List.of(
             Feature.essential(CORE,
@@ -100,6 +105,8 @@ public final class IronsSpellsAdapter implements MagicAdapter {
                     Symbol.method(PKG + "api.events.SpellOnCastEvent", "setManaCost", "void", "int")),
             Feature.optional(SPELL_POWER,
                     Symbol.staticField(PKG + "api.registry.AttributeRegistry", "SPELL_POWER", HOLDER)),
+            Feature.optional(CASTING,
+                    Symbol.method(PKG + "api.magic.MagicData", "isCasting", "boolean")),
             Feature.optional(CLIENT_SYNC,
                     Symbol.staticField(PKG + "network.SyncManaPacket", "TYPE", "net.minecraft.network.protocol.common.custom.CustomPacketPayload$Type"),
                     Symbol.constructor(PKG + "network.SyncManaPacket", PKG + "api.magic.MagicData")));
@@ -157,7 +164,7 @@ public final class IronsSpellsAdapter implements MagicAdapter {
                 // without the regeneration attribute Iron's own regeneration would show up here: it is not credited
                 MagicAdapters.reportGained(player, data, delta);
             }
-            float mirror = (float) data.mana();
+            float mirror = mirror(data, MagicData.getPlayerMagicData(player));
             event.setNewMana(mirror);
             mirrored.put(player.getUUID(), mirror);
         }
@@ -175,10 +182,16 @@ public final class IronsSpellsAdapter implements MagicAdapter {
                 return;
             }
             AbstractSpell spell = SpellRegistry.getSpell(event.getSpellId());
-            double cost = spell.getManaCost(event.getSpellLevel()) * ExternalMagic.costMultiplier(data, MOD_ID);
-            if (data.mana() + EPSILON < cost) {
+            double cost = MagicAdapters.scaledCost(data, MOD_ID, spell.getManaCost(event.getSpellLevel()));
+            if (!ExternalMagic.affords(data.mana(), cost)) {
                 event.setCanceled(true);
-                player.displayClientMessage(Component.translatable("mana_awakened.integration.not_enough", CompactNumber.ceil(cost)).withStyle(ChatFormatting.RED), true);
+                MagicAdapters.refuse(player, cost);
+                return;
+            }
+            // the cast goes ahead: from now until it ends Iron's sees what the core can pay, in its own units
+            MagicData magic = MagicData.getPlayerMagicData(player);
+            if (magic != null) {
+                write(player, magic, (float) MagicAdapters.mirrorUnits(data, MOD_ID));
             }
         }
     }
@@ -240,17 +253,32 @@ public final class IronsSpellsAdapter implements MagicAdapter {
         if (magic == null) {
             return;
         }
-        float target = (float) data.mana();
+        float target = mirror(data, magic);
         Float last = mirrored.get(player.getUUID());
         if (last == null || Math.abs(magic.getMana() - target) > 0.001F) {
-            pushing = true;
-            try {
-                magic.setMana(target);
-            } finally {
-                pushing = false;
-            }
-            mirrored.put(player.getUUID(), magic.getMana());
+            write(player, magic, target);
         }
+    }
+
+    /** Writes Iron's mana without reading the write back as a spend. */
+    private void write(ServerPlayer player, MagicData magic, float mana) {
+        pushing = true;
+        try {
+            magic.setMana(mana);
+        } finally {
+            pushing = false;
+        }
+        mirrored.put(player.getUUID(), magic.getMana());
+    }
+
+    /**
+     * What Iron's is shown: while it casts (or always, on a build whose casting state or pre-cast event this bridge cannot read) the
+     * whole units the core can pay at the multiplier, otherwise the core as a whole number. Whole numbers keep every Iron's spend exact
+     * in its float (its mana never goes above its max_mana attribute, at most 1,000,000).
+     */
+    private float mirror(ManaData data, MagicData magic) {
+        boolean scaled = !api.isOn(PRE_CAST) || !api.isOn(CASTING) || (magic != null && magic.isCasting());
+        return scaled ? (float) MagicAdapters.mirrorUnits(data, MOD_ID) : (float) Math.max(0.0, Math.floor(data.mana()));
     }
 
     private void applyAttributes(ServerPlayer player, ManaData data) {

@@ -2,6 +2,7 @@ package com.manaawakened.compat;
 
 import com.manaawakened.ManaAwakened;
 import com.manaawakened.config.ManaConfig;
+import com.manaawakened.core.CompactNumber;
 import com.manaawakened.core.ExternalMagic;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.network.ManaSpentPayload;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.ModList;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -158,7 +161,11 @@ public final class MagicAdapters {
      * multiplier of the mod ({@link ExternalMagic#costMultiplier(ManaData, String)}), so the core's size never makes another mod's
      * fixed costs free; body heat follows what was paid, and so does the spend feedback on the owner's mana HUD.
      *
-     * @return the mana the core actually paid
+     * <p>All or nothing (1.0.2): the core pays the whole scaled cost or, when it does not hold it, nothing at all (no mana, no heat, no
+     * popup). It never pays a part. Each adapter shows its mod only what the core can pay ({@link #mirrorUnits}) or refuses the cast
+     * in the mod's own pre-cast hook, so a mod can only spend what the core then pays in full.
+     *
+     * @return the mana the core actually paid (0 when refused, and for a transcendent core)
      */
     public static double reportSpent(ServerPlayer player, ManaData data, String modId, double amount) {
         return reportSpent(player, data, modId, amount, false);
@@ -169,13 +176,39 @@ public final class MagicAdapters {
      * ticks) or a single cast; the spend feedback shows the first as a rate and the second as a number.
      */
     public static double reportSpent(ServerPlayer player, ManaData data, String modId, double amount, boolean continuous) {
-        double paid = ManaSpendHandler.spend(player, data, amount * ExternalMagic.costMultiplier(data, modId));
+        double cost = amount * ExternalMagic.costMultiplier(data, modId);
+        if (!data.isTranscendent() && !ExternalMagic.affords(data.mana(), cost)) {
+            return 0.0;
+        }
+        double paid = ManaSpendHandler.spend(player, data, cost);
         if (continuous) {
             SpendFeedback.recordContinuous(player, ManaSpentPayload.EXTERNAL, paid);
         } else {
             SpendFeedback.record(player, ManaSpentPayload.EXTERNAL, paid);
         }
         return paid;
+    }
+
+    /**
+     * How much of its own mana {@code modId} is shown (1.0.2): the whole units the core can pay at the mod's cost multiplier
+     * ({@link ExternalMagic#affordableUnits}), so the mod's own "enough mana?" check, made in its own units, agrees with the core.
+     * A transcendent core pays nothing, so its mods see the core as it is.
+     */
+    public static long mirrorUnits(ManaData data, String modId) {
+        if (data.isTranscendent()) {
+            return (long) Math.max(0.0, Math.floor(data.mana()));
+        }
+        return ExternalMagic.affordableUnits(data.mana(), ExternalMagic.costMultiplier(data, modId));
+    }
+
+    /** The scaled cost of {@code amount} of {@code modId}'s mana for this core: 0 for a transcendent core. */
+    public static double scaledCost(ManaData data, String modId, double amount) {
+        return data.isTranscendent() ? 0.0 : amount * ExternalMagic.costMultiplier(data, modId);
+    }
+
+    /** The red "not enough mana in your core: this spell costs N" line over the hotbar, for a refused external cast. */
+    public static void refuse(ServerPlayer player, double cost) {
+        player.displayClientMessage(Component.translatable("mana_awakened.integration.not_enough", CompactNumber.ceil(cost)).withStyle(ChatFormatting.RED), true);
     }
 
     public static void reportGained(ServerPlayer player, ManaData data, double amount) {

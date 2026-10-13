@@ -136,12 +136,18 @@ public final class ExternalMagicGameTests {
         double heat = expected / 10_000.0 * ManaConfig.SERVER.heatPerCapacitySpent.get();
         helper.assertTrue(near(data.bodyHeat(), heat, 1.0E-9), "heat follows the amount paid (" + heat + "): " + data.bodyHeat());
 
-        // an empty core pays what it has, and heats by that, not by the price asked
-        data.setMana(100.0);
-        data.setBodyHeat(0.0);
-        double partial = MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 50.0);
-        helper.assertTrue(near(partial, 100.0, 1.0E-9) && data.mana() == 0.0, "only 100 was there to pay: " + partial);
-        helper.assertTrue(near(data.bodyHeat(), 100.0 / 10_000.0 * ManaConfig.SERVER.heatPerCapacitySpent.get(), 1.0E-9), "heat of what was paid: " + data.bodyHeat());
+        // 1.0.2: all or nothing. A core short of the price, even by one, pays nothing and does not heat; one holding exactly the
+        // price pays all of it (until 1.0.1 a short core paid what it had: the owner's "-1,056" for a 232,321 spell)
+        for (double held : new double[] {0.0, 100.0, expected - 1.0}) {
+            data.setMana(held);
+            data.setBodyHeat(0.0);
+            double refused = MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 50.0);
+            helper.assertTrue(refused == 0.0 && data.mana() == held && data.bodyHeat() == 0.0, "a core of " + held + " cannot pay " + expected
+                    + ": it pays nothing and stays cool, paid " + refused + ", mana " + data.mana() + ", heat " + data.bodyHeat());
+        }
+        data.setMana(expected);
+        double exact = MagicAdapters.reportSpent(player, data, ExternalMagic.IRONS, 50.0);
+        helper.assertTrue(near(exact, expected, 1.0E-9) && near(data.mana(), 0.0, 1.0E-9), "a core holding exactly " + expected + " pays all of it: " + exact + ", left " + data.mana());
 
         // Circle 10 pays nothing
         data.setCircle(10);
@@ -436,8 +442,8 @@ public final class ExternalMagicGameTests {
         double paid = before - data.mana();
         helper.assertTrue(near(paid, 40.0 * multiplier, CultivationRules.regenPerTick(data) + 1.0E-6), "the core pays 40 x " + multiplier + ": " + paid);
         helper.assertTrue((int) counter.invoke(mahou) == counterAfterDrain, "the mirror never touches Mahou's growth counter");
-        helper.assertTrue((int) iMahou.getMethod("getStoredMana").invoke(mahou) == (int) Math.floor(data.mana())
-                && (int) iMahou.getMethod("getMaxMana").invoke(mahou) == (int) Math.floor(data.maxMana()), "stored and maximum mana still mirror the core");
+        helper.assertTrue((int) iMahou.getMethod("getStoredMana").invoke(mahou) == MagicAdapters.mirrorUnits(data, ExternalMagic.MAHOU)
+                && (int) iMahou.getMethod("getMaxMana").invoke(mahou) == (int) Math.floor(data.maxMana()), "stored mana mirrors what the core can pay, the maximum the capacity");
 
         // Circle 10: free
         ServerPlayer god = cultivator(helper, 10);

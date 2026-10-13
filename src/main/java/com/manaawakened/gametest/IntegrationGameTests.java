@@ -76,7 +76,8 @@ public final class IntegrationGameTests {
         Method setMana = magicDataClass.getMethod("setMana", float.class);
 
         float mirrored = (float) getMana.invoke(magic);
-        helper.assertTrue(Math.abs(mirrored - data.mana()) < 0.01F, "Iron's mana should mirror the core, got " + mirrored + " vs " + data.mana());
+        // 1.0.2: between casts Iron's sees the core as a whole number (whole numbers keep its float spends exact)
+        helper.assertTrue(mirrored == (float) Math.floor(data.mana()), "Iron's mana should mirror the core, got " + mirrored + " vs " + data.mana());
         double maxAttr = player.getAttributeValue(net.minecraft.core.registries.BuiltInRegistries.ATTRIBUTE
                 .getHolder(net.minecraft.resources.ResourceLocation.parse("irons_spellbooks:max_mana")).orElseThrow());
         helper.assertTrue(Math.abs(maxAttr - data.maxMana()) < 0.5, "Iron's max mana should equal the core capacity, got " + maxAttr);
@@ -90,7 +91,7 @@ public final class IntegrationGameTests {
         helper.assertTrue(data.bodyHeat() > 0.0, "casting should heat the body");
         CultivationTicker.tick(player, data);
         float after = (float) getMana.invoke(magic);
-        helper.assertTrue(Math.abs(after - (float) data.mana()) < 0.01F, "Iron's mana should stay a mirror after the tick, got " + after);
+        helper.assertTrue(after == (float) Math.floor(data.mana()), "Iron's mana should stay a mirror after the tick, got " + after);
         helper.succeed();
     }
 
@@ -157,7 +158,9 @@ public final class IntegrationGameTests {
         Class<?> iMahou = Class.forName("stepsword.mahoutsukai.dataattachments.mahou.IMahou");
         int stored = (int) iMahou.getMethod("getStoredMana").invoke(mahou);
         int max = (int) iMahou.getMethod("getMaxMana").invoke(mahou);
-        helper.assertTrue(stored == (int) Math.floor(data.mana()), "Mahou mana should mirror the core, got " + stored + " vs " + data.mana());
+        // 1.0.2: Mahou sees what the core can pay in its units (the core over the multiplier, whole), its maximum is the capacity
+        long units = com.manaawakened.compat.MagicAdapters.mirrorUnits(data, com.manaawakened.core.ExternalMagic.MAHOU);
+        helper.assertTrue(stored == units && units < (long) Math.floor(data.mana()), "Mahou mana should mirror what the core can pay, got " + stored + " vs " + units);
         helper.assertTrue(max == (int) data.maxMana(), "Mahou max mana should equal the core capacity, got " + max);
 
         // Mahou spends by writing the attachment directly; the core pays that times the cost multiplier (since 3.4.0).
@@ -167,7 +170,7 @@ public final class IntegrationGameTests {
         CultivationTicker.tick(player, data);
         helper.assertTrue(Math.abs(data.mana() - (base - price)) < 10.0 + 4.0 * CultivationRules.regenPerTick(data), "the core should pay the Mahou cost x the multiplier (" + price + "), mana is " + data.mana());
         int after = (int) iMahou.getMethod("getStoredMana").invoke(mahou);
-        helper.assertTrue(after == (int) Math.floor(data.mana()), "Mahou mana should stay a mirror, got " + after);
+        helper.assertTrue(after == com.manaawakened.compat.MagicAdapters.mirrorUnits(data, com.manaawakened.core.ExternalMagic.MAHOU), "Mahou mana should stay a mirror, got " + after);
         helper.succeed();
     }
 

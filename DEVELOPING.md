@@ -60,7 +60,7 @@ Generated files:
 .\gradlew.bat runGameTestServer
 ```
 
-boots a headless dedicated server and runs every game test in `com.manaawakened.gametest` (344 at 1.0.1), then exits; the log ends with `All 344 required tests passed :)`. Game tests are only registered when `neoforge.enabledGameTestNamespaces` names the mod (the dev runs set it), so they never run in a normal game, and the published jar does not contain them.
+boots a headless dedicated server and runs every game test in `com.manaawakened.gametest` (353 at 1.0.2), then exits; the log ends with `All 353 required tests passed :)`. Game tests are only registered when `neoforge.enabledGameTestNamespaces` names the mod (the dev runs set it), so they never run in a normal game, and the published jar does not contain them.
 
 Every release is tested PLAIN once and WITH the magic mods for each build set:
 - **PLAIN**: only Mana Awakened, Minecraft, NeoForge and Player Animator on the runtime classpath. The log says `No supported magic mods found; Mana Awakened runs with its own mana only.`
@@ -80,7 +80,7 @@ The maintainer's verification tools live **outside** the repository, in a siblin
   .\gradlew.bat --init-script ..\verify-tools\verify.init.gradle -PmagicSet=ours runGameTestServer
   ```
 - `run-tests.ps1 plain` / `run-tests.ps1 magic oldest|ours|newest` runs a suite and prints only the verdict lines (`run-tests.ps1 plain "" <Player Animator jar>` against another Player Animator build).
-- `mutate.ps1 -File <file> -Find "<exact text>" -Replace "<text>" [-Set ours]`: a mutation check. It hashes the file, applies the edit, runs the plain suite (or a WITH-mods set), prints the failed tests, restores the file and shows that the hash matches again. `mutate-101.ps1` runs the mutations of 1.0.1 one after the other into `mutate-101.log`.
+- `mutate.ps1 -File <file> -Find "<exact text>" -Replace "<text>" [-Set ours]`: a mutation check. It hashes the file, applies the edit, runs the plain suite (or a WITH-mods set), prints the failed tests, restores the file and shows that the hash matches again. `mutate-101.ps1` and `mutate-102.ps1` run the mutations of 1.0.1 and 1.0.2 one after the other into `mutate-101.log` and `mutate-102.log`.
 - `game-driver.ps1`, dot-sourced in PowerShell: screenshots of the screen and keyboard / mouse input for the `runClient` window (`Snap`, `Burst`, `Frames`, `Sheet`, `Crop`, `Chat`, `Press`, `Click`, `Look`, `Maximize-Game`, `Size-Game`), used for the real-window checks.
 - `pa/2.0.0/` and `pa/2.0.4/`: the oldest and the newest NeoForge builds of Player Animator for 1.21.1; `magic/<mod>/<version>/`: the surveyed Iron's, Ars, Mahou and Curios builds; all downloaded from Modrinth with their SHA-1 checked (`fetch-modrinth.ps1`). `api-diff.ps1` (the symbol table above) and `mods-toml.ps1` (a jar's declared dependencies).
 
