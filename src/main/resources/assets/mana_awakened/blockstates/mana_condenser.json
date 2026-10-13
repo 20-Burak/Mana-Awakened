@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "mana_awakened:block/mana_condenser"
+    },
+    "lit=true": {
+      "model": "mana_awakened:block/mana_condenser_lit"
+    }
+  }
+}

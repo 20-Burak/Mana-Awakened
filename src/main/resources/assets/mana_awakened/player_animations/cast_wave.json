@@ -1,0 +1,32 @@
+{
+  "name": "cast_wave",
+  "author": "Mana Awakened",
+  "description": "WAVE, 30 ticks for the base timeline (6 summon, 4 manifest, 0 travel, 4 impact, 16 aftermath): both arms sweep down and back while the circle opens, rise with the wall as it forms, and shove forward low at the launch (tick 10); then they sink. Arms and torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 30,
+    "stopTick": 31,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "rightArm": { "pitch": 35.0, "yaw": -10.0, "roll": -12.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "rightArm": { "pitch": -60.0, "yaw": -14.0, "roll": -6.0 } },
+      { "tick": 14, "easing": "INOUTSINE", "rightArm": { "pitch": -55.0, "yaw": -12.0, "roll": -6.0 } },
+      { "tick": 30, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "leftArm": { "pitch": 35.0, "yaw": 10.0, "roll": 12.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "leftArm": { "pitch": -60.0, "yaw": 14.0, "roll": 6.0 } },
+      { "tick": 14, "easing": "INOUTSINE", "leftArm": { "pitch": -55.0, "yaw": 12.0, "roll": 6.0 } },
+      { "tick": 30, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "torso": { "pitch": -5.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "torso": { "pitch": 12.0 } },
+      { "tick": 16, "easing": "INOUTSINE", "torso": { "pitch": 6.0 } },
+      { "tick": 30, "easing": "INSINE", "torso": { "pitch": 0.0 } }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "cast_vortex",
+  "author": "Mana Awakened",
+  "description": "VORTEX, 38 ticks for the base timeline (8 summon, 6 manifest, 0 travel, 4 impact, 20 aftermath): both arms rise and circle one over the other while the circle opens and the funnel spins up, then are drawn in and down to the chest as the vortex pulls (tick 14), held, and lowered. Arms and torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 38,
+    "stopTick": 39,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 4, "easing": "OUTSINE", "rightArm": { "pitch": -80.0, "yaw": -30.0, "roll": 0.0 } },
+      { "tick": 8, "easing": "INOUTSINE", "rightArm": { "pitch": -100.0, "yaw": 20.0, "roll": 20.0 } },
+      { "tick": 11, "easing": "INOUTSINE", "rightArm": { "pitch": -80.0, "yaw": 30.0, "roll": 0.0 } },
+      { "tick": 14, "easing": "INCUBIC", "rightArm": { "pitch": -40.0, "yaw": -20.0, "roll": -15.0 } },
+      { "tick": 22, "easing": "INOUTSINE", "rightArm": { "pitch": -42.0, "yaw": -22.0, "roll": -15.0 } },
+      { "tick": 38, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 4, "easing": "OUTSINE", "leftArm": { "pitch": -100.0, "yaw": -20.0, "roll": -20.0 } },
+      { "tick": 8, "easing": "INOUTSINE", "leftArm": { "pitch": -80.0, "yaw": 30.0, "roll": 0.0 } },
+      { "tick": 11, "easing": "INOUTSINE", "leftArm": { "pitch": -100.0, "yaw": -20.0, "roll": -20.0 } },
+      { "tick": 14, "easing": "INCUBIC", "leftArm": { "pitch": -40.0, "yaw": 20.0, "roll": 15.0 } },
+      { "tick": 22, "easing": "INOUTSINE", "leftArm": { "pitch": -42.0, "yaw": 22.0, "roll": 15.0 } },
+      { "tick": 38, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } },
+      { "tick": 8, "easing": "INOUTSINE", "torso": { "pitch": -4.0, "yaw": 8.0 } },
+      { "tick": 11, "easing": "INOUTSINE", "torso": { "pitch": -4.0, "yaw": -8.0 } },
+      { "tick": 14, "easing": "INCUBIC", "torso": { "pitch": 8.0, "yaw": 0.0 } },
+      { "tick": 38, "easing": "INSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } }
+    ]
+  }
+}

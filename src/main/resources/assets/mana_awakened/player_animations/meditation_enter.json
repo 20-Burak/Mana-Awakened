@@ -1,0 +1,22 @@
+{
+  "name": "meditation_enter",
+  "author": "Mana Awakened",
+  "description": "Sits down into the lotus pose over 1.2 s: the body lowers, the legs cross, the hands come to rest on the knees.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 24,
+    "stopTick": 25,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 24, "easing": "INOUTSINE", "body": { "y": -0.62 } },
+      { "tick": 24, "easing": "INOUTSINE", "rightLeg": { "pitch": -90.0, "yaw": -28.0, "roll": 0.0 } },
+      { "tick": 24, "easing": "INOUTSINE", "leftLeg": { "pitch": -86.0, "yaw": 28.0, "roll": 0.0 } },
+      { "tick": 24, "easing": "INOUTSINE", "rightArm": { "pitch": -36.0, "yaw": 0.0, "roll": 12.0 } },
+      { "tick": 24, "easing": "INOUTSINE", "leftArm": { "pitch": -36.0, "yaw": 0.0, "roll": -12.0 } }
+    ]
+  }
+}

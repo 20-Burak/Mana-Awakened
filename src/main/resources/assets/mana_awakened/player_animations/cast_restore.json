@@ -1,0 +1,35 @@
+{
+  "name": "cast_restore",
+  "author": "Mana Awakened",
+  "description": "RESTORE, 22 ticks for the base timeline (instant: 2 impact, 20 aftermath): both hands come to the chest, one over the other, as the glow gathers (tick 2), the head bows a little, the hands open outward as the glow spreads (tick 12), then lower. Arms, torso and head only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 22,
+    "stopTick": 23,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTCUBIC", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "rightArm": { "pitch": -55.0, "yaw": -50.0, "roll": -30.0 } },
+      { "tick": 10, "easing": "INOUTSINE", "rightArm": { "pitch": -57.0, "yaw": -52.0, "roll": -30.0 } },
+      { "tick": 12, "easing": "OUTSINE", "rightArm": { "pitch": -60.0, "yaw": -10.0, "roll": 10.0 } },
+      { "tick": 22, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "leftArm": { "pitch": -50.0, "yaw": 50.0, "roll": 30.0 } },
+      { "tick": 10, "easing": "INOUTSINE", "leftArm": { "pitch": -52.0, "yaw": 52.0, "roll": 30.0 } },
+      { "tick": 12, "easing": "OUTSINE", "leftArm": { "pitch": -60.0, "yaw": 10.0, "roll": -10.0 } },
+      { "tick": 22, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "torso": { "pitch": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "torso": { "pitch": 5.0 } },
+      { "tick": 12, "easing": "OUTSINE", "torso": { "pitch": -3.0 } },
+      { "tick": 22, "easing": "INSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "head": { "pitch": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "head": { "pitch": 14.0 } },
+      { "tick": 12, "easing": "OUTSINE", "head": { "pitch": -6.0 } },
+      { "tick": 22, "easing": "INSINE", "head": { "pitch": 0.0 } }
+    ]
+  }
+}

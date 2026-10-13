@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:flint"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    }
+  ],
+  "result": {
+    "id": "mana_awakened:passive_scroll",
+    "count": 1,
+    "components": {
+      "mana_awakened:passive": "keen_strike"
+    }
+  }
+}

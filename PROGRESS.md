@@ -1,0 +1,100 @@
+# Progress
+
+## 1.0.0 before the first upload (done)
+
+Owner's decisions on the 1.0.0 report and the integration hardening, same version. Commits by `20-Burak <340501724+20-Burak@users.noreply.github.com>` (repo-local git config). A1: fireballs capped at 0.35 x camera distance, shock rings at 0.65 x (CameraNear.ballRadius / ringRadius). B/C: optional ranges open at the top from the oldest passing Modrinth builds; ApiProbe + AdapterSet; unifyIrons/Ars/Mahou; MagicAdapters.TESTED and untestedNote; magic mods from Modrinth Maven / CurseMaven, `-PmagicSet=oldest|ours|newest` (no -PmagicSet = plain). 334 tests plain and with each set. verify-tools: fetch-modrinth.ps1, api-diff.ps1, mods-toml.ps1, magic/<mod>/<version>/ jars, run-tests.ps1 `magic <set>`, mutate.ps1 `-Set`. The game-test runs share run/ with runClient: back up run/ before a real-window check and restore it after the LAST test run.
+
+## 1.0.0, first public release (done)
+
+Commits on `main`: Part 1 (Condenser text wrapped, `CondenserLayout`), Part 2.1–2.3 (`CameraNear` fireball rule, nova `aimPoint`, cheat modifiers leave Range), Part 3 (Player Animator `[2.0.0,3.0)`, oldest 2.0.0 and newest 2.0.4 tested), Part 4 packaging (1.0.0, GPL-3.0, mods.toml, logo, jar excludes), Part 2.4 real-window fix (shock front and `CameraNear.crowd`), Part 4 docs (README for players, DEVELOPING.md, ROADMAP section 0, `release/1.0.0/`), tag `v1.0.0`; orphan branch `public` = the 1.0.0 tree only. 327 tests plain (PA 2.0.0 and 2.0.4) and with magic mods. Verification tools gained `-PpaJar`, `-PgameDir`, `mutate.ps1`, `Size-Game` / `Look` / `Sheet` in `game-driver.ps1`. In exclusive fullscreen (F11) the desktop capture freezes: use the game's own F2 screenshots there.
+
+# Spell choreography (3.8.0 Session A, 4.0.0 Session B)
+
+Checkpoint file for the two-session task "every spell Kind gets its own choreography and caster gesture".
+Session B: read this and `git log` first; finish anything listed under "left unfinished" before group 4.
+
+## Done
+
+### Part 0 (housekeeping), in the Part 0 commit
+- 0.1 Git: `git init` (local only, branch `main`), `.gitignore` extended with logs / scratch patterns, baseline commit "baseline 3.7.0". Git is not on PATH on this PC: the one bundled with Visual Studio 2026 Community works:
+  `C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git.exe`.
+- 0.2 Meditation start log: `meditation.logStarts` (server config, default false, lang key `mana_awakened.configuration.logMeditationStarts`) → one INFO line per start with the cause (`toggle payload (meditate=true, moved=...)` or `direct call`), position, tick, the seated-until-room flag and the toggle cooldown (`MeditationHandler.start(player, data, cause)`).
+- 0.3 Standing up under a low ceiling: `MeditationHandler.hasRoomToStand` (blocks only, the standing 0.6×1.8 box); `ManaData.seatedUntilRoom` (session only, never saved, synced in `SyncManaPayload` and `SyncAuraPayload`; `isSeated()` = meditating or waiting); the size event, the pose and the camera follow `isSeated()`; `CultivationTicker` → `tickSeatedUntilRoom` grows the body back when the ceiling is gone; action bar `mana_awakened.meditation.no_room` ("No room to stand up."). Test `standingUpUnderALowCeilingWaitsForRoom` (MeditationGameTests).
+- 0.4 bendy-lib: Modrinth API (`/v2/project/bendy-lib/version?loaders=["neoforge"]&game_versions=["1.21.1"]`) returned no version → skipped, no optional dependency, no bend values written.
+
+### Group 1 (timelines, server impact scheduling, gesture plumbing)
+- `spell/SpellTimelines`: the table (ticks SUMMON / MANIFEST / TRAVEL / IMPACT / AFTERMATH per Kind), QUICKEN scale 0.92^level with floor 0.5 (phases before the impact only), `STAGGER_TICKS` 3 (volley projectiles, MULTI meteors/bolts), `ECHO_INTERVAL_TICKS` 8. `SpellStats.timeline()` carries it.
+- `spell/SpellCaster`: mana + cooldown at the cast; `ModNetwork.sendCast` (one `SpellCircleFxPayload` per cast: kind, mode, target, seed, phase times, beams, echoes, radius, tier; protocol 22); the effect at `serverTick` (impact tick; a BARRAGE's server part at the end of MANIFEST, each projectile's hit TRAVEL later) through `DelayedTasks`; instant kinds (WARD, RESTORE, SANCTUARY, BUFF, BLINK, DASH, UTILITY) resolve at once as before (rites still refund). Wind-up: any cast during the SUMMON phase of the last one is refused (`mana_awakened.spell.winding_up`); damage does not interrupt. Cancel rule (`canResolve`): dead, removed, logged out or in another world at the impact → no impact, nothing refunded. Echo i resolves at impact + i × 8.
+- `SpellEffects.resolve(caster, recipe, stats, colors, target, seed)`: the target decided at cast time is where STRIKE / METEOR / PILLAR / RAIN / VORTEX / CURSE land; METEOR hits at the impact tick (no server comet orb any more; the landing sends a BLAST), extra meteors land STAGGER_TICKS apart where `CastSpread` (seeded) scatters them; STRIKE's extra bolts likewise. BARRAGE (`SpellKinds.barrage`): projectile i launches i × 3 ticks after the volley leaves, picks the creature it seeks, sends a seeking orb (`SpellFx.seekingOrb`, `SpellFxPayload.target` entity id, the client steers the orb at the live entity), and hits TRAVEL ticks later: the tracked creature wherever it went, or what stands in its line.
+- Client: `client/fx/SpellCircleRenderer` now runs the choreography from the payload (cap 32 live casts, oldest dropped): the generic show (caster circle for the whole timeline with an echo pulse, ground circle(s) at the target and at the seeded MULTI spots). `client/anim/CastGestures`: a Player Animator layer (priority 40) per player; `cast_generic.json` (right hand up, push, drop; arms + a little torso) played at `clip length / payload total` speed, so it lasts exactly the payload's total; first person: none.
+- Tests: `SpellTimelineGameTests` (8): every Kind has a timeline with a positive sum and impact tick = cast + SUMMON + MANIFEST + TRAVEL; QUICKEN shortens down to the floor and no further, the impact and aftermath untouched, the stats carry it; a METEOR hurts at its impact tick and not one tick before (payload checked); a STRIKE hits the spot it was aimed at although the caster turned; a BEAM at its impact tick and a volley's first projectile TRAVEL ticks after it left; a caster who dies before the impact has none and keeps paying; a cast during the wind-up is refused and costs nothing, damage does not interrupt, the next cast is accepted once the circle has opened; MULTI 99 / ECHO 99 → 24 beams, 8 echoes, 1 + 8 scheduled impacts, one payload; the payloads survive the wire (SpellFxGameTests). Older tests that asserted a hit right after `cast` now let the timeline run (`castAndLand`).
+
+### Group 2 (METEOR + STRIKE, with gestures)
+- `SpellCircleRenderer.meteor`: SUMMON a wide circle opens in the sky 26 blocks (+ radius) over the landing and a warning circle on the ground; MANIFEST a plasma rock condenses in the sky circle, rings collapse into it, embers (the sigil's dust) stream in from the circle's edge; TRAVEL the rock drops through the circle (ease-in) with a comet tail and flame sparks, the ground circle pulses faster as it nears; IMPACT the ground circle flares and a shock ring runs out (the fireball / mushroom is the server's BLAST at the impact tick); AFTERMATH the crater glows and dust + smoke drift up while all fades. MULTI: up to 8 meteors shown, each STAGGER_TICKS later on its seeded spot (client heightmap for the ground).
+- `SpellCircleRenderer.strike`: SUMMON the ground circle at the target (and the seeded extra spots) opens; MANIFEST a spark condenses 7 (+0.4 × tier) blocks above it with collapsing rings and electric sparks gathering; TRAVEL a beam drives down from the spark to the circle; IMPACT the circle flares (the bolt / column and blast are the server's); AFTERMATH sparks rise from the circle while it fades.
+- Gestures: `cast_meteor.json` (74 ticks = base total: both arms rise over SUMMON, tremble through MANIFEST, hold through TRAVEL, pulled down hard at the impact tick 40, sink through the aftermath; torso and head follow), `cast_strike.json` (27 ticks: right arm swings up and points, fist tightens, chops down at tick 16, falls back). `CastGestures.clipId`: METEOR, STRIKE → their clips, the rest → `cast_generic`.
+- Particles are spawned once per game tick per cast (`spawnTick`), never per frame; the dust options are made once per cast.
+- Test `everyGestureClipIsAsLongAsItsBaseTimelineAndMovesOnlyTheUpperBody`: every clip is Emotecraft v3, plays once, is exactly the base timeline total long (so speed 1 on a plain cast) and moves only arms / torso / head.
+
+### Group 3 (BEAM + BARRAGE, with gestures)
+- `SpellCircleRenderer.beam`: the standing circle opens before the hands and follows the look (`placeCaster` stores the circle's centre in `frontX/Y/Z`); MANIFEST a charge (spark + glow) at the centre with rings collapsing in the circle's plane and dust drawn in from the rim; at the impact tick the circle flares and a muzzle flash fills the centre (the ray is the server's BEAM); AFTERMATH the circle fades.
+- `SpellCircleRenderer.barrage`: one small circle per projectile on the server's launch ring around the eye (same formula: look × 1.8, side cos(a) × 1.3, up sin(a), −0.2), each facing the look; an orb forms in each over MANIFEST; projectile i's circle flashes and collapses over 4 ticks from `windUp + i × STAGGER_TICKS` (the flying orb is the server's seeking orb); the big front circle is not drawn for a volley.
+- Gestures: `cast_beam.json` (16 ticks: both hands forward and together, push at tick 8, drop), `cast_barrage.json` (24 ticks: hands open outward, alternating thrusts right/left at 10, 13, 16, 19, drop). Clip test covers them.
+- After the real-window check: the meteor's condensing-rock halo is capped (`min(rockSize, 2.2) × 2.4`), it whited out the screen at Circle 9; the sky circle moved up to 30 blocks.
+
+### Real-window check (Session A, done; see the 3.8.0 report)
+- Driven from PowerShell (`verify-tools\game-driver.ps1`): screen capture + injected keys. The dev client (`runClient`, with Iron's / Ars / Mahou from libs/) in the AltarCheck world, maximized to 1920x991; run/options.txt, run/config and run/saves/AltarCheck backed up before and restored byte-identically after (156 files, 0 differences).
+
+## Session B (4.0.0)
+
+### Session A follow-ups (commit "Session A follow-ups", 319 plain / 319 with magic mods)
+- B0.1 BEAM 3 / 2 / 0 / 2 / 6 (fires at tick 5); `cast_beam.json` 13 ticks.
+- B0.2 only a kind with a SUMMON phase is refused during a wind-up (`SpellCaster.cast` checks `stats.timeline().summon() > 0`); test `aWardWorksDuringAnotherSpellsWindUp`.
+- B0.4 every glow disc goes through `glow()` (`SpellCircleRenderer`) / `Draw.glow` (`SpellFxRenderer`): radius ≤ 0.35 × distance to the camera, fading out inside 0.4–1.6 blocks; the blast fireball thins when the camera is inside it.
+- B0.5 / B0.8 c: a meteor's sky circle sits on the caster's side of its spot, `METEOR_PATH` 22 (+ radius / 2) blocks along a line tilted 35°–65° from the vertical (`CastSpread.tiltDegrees` / `bearingDegrees`), facing the fall; the rock falls along that line. Bolts lean up to 15° (`leanDegrees`).
+- B0.8 a: `SpellTimelines` volley clock: `openStagger` (1–3 ticks), `extraSummon`, `BEAT_TICKS` 4, `launchStagger` / `launchOffset`, `waveInterval` / `waveOffset` (echo waves), `volleySpan` ≤ `VOLLEY_CAP` 60. `SpellTimelines.of(kind, quicken, beams)` is what `SpellStats` carries. The server: strike / meteor / pillar / wave / beam-volley / barrage instances at `launchOffset`, echoes at `waveOffset`. The client: `SpellCircleRenderer.instance(cast, wave, index, age)` runs one instance's clock (open, condense, launch, flight, hit, fade, close).
+- B0.8 b: `CastSpread.scatter(seed, count, spread)` (random distances weighted to the centre, random bearings, `MIN_GAP` 1.6 where there is room), `sizeScale` ±15%. The launch ring of a volley (`SpellEffects.ringOrigin` / `ringAngle` / `ringRadius`) is jittered by the seed; a MULTI beam fires from it, every ray aimed at the first ray's point; volley orbs carry `FLAG_CURVE` and bow out then in on the client.
+- B0.9 `hud.look` = CALM (default) | CLASSIC (`ManaConfig.HudLook`, lang keys `hudLook`, `hud_look.*`); `client/hud/CalmHue` (one hue, 90 s cycle); `ManaHeartLayer` (ring speed cap at ring 4's, inner rings alpha 0.25–0.45, solid gauge with a sheen, core edge and halo in the hue), `ManaReadoutLayer` bar, `WorldAuraRenderer.drawCorona`. `hud.style` (HEART / SIMPLE / OFF) and `hud.hudScale` (0.5–2.0) already existed and were left as they are.
+- B0.6 mutation (echo cap removed): `multiAndEchoMakeAsManyTimelineInstancesAsTheEngineAllows` and `maxedSpellsStayInsideTheEngineLimits` fail; restored byte-identical. B0.7 `*.zip` ignored, the three archives untracked (files kept).
+
+### Group 4 (NOVA, WAVE, CONE, PILLAR) — 320 plain / 320 with magic mods
+- NOVA 6 / 4 / 8 / 4 / 12, `atTarget` now (the burst point is decided at the cast); the server bursts at the impact tick (no orb any more). Client: the circle under the feet, the ball condensing before the hands, a lobbed flight with a tail, the ground circle at the burst point, the crater glow. `cast_nova.json` (arms crossed, flung out at tick 10).
+- WAVE 6 / 4 / 0 / 4 / 16: the circle under the feet, a wall rising 1.6 blocks ahead (one per fan line of a volley), flashing away at the launch; the server's walls roll in sequence. `cast_wave.json`.
+- CONE 4 / 3 / 0 / 2 / 8: a small circle before the hand, three motes spiralling into the palm, a flash. `cast_cone.json` (palm out).
+- PILLAR 6 / 6 / 0 / 4 / 12: ground circles on the scattered spots, a shaft of light sinking into each, rings climbing; the server erupts at the impact tick (the 12-tick gather delay is gone), extra pillars at `launchOffset`. `cast_pillar.json` (fist up, slammed down at tick 12). Test `aPillarEruptsAtItsImpactTickAndItsVolleyInSequence`.
+
+### Group 5 (VORTEX, RAIN, SANCTUARY, CURSE) — 321 plain / 321 with magic mods
+- VORTEX 8 / 6 / 0 / 4 / 20: the ground circle, a funnel (the VORTEX ribbons) spinning up out of it with rings climbing and dust spiralling in, a flare at the launch; the server's vortex pulls from the impact tick. `cast_vortex.json` (arms circling, drawn in at tick 14).
+- RAIN 8 / 6 / 0 / 4 / 20: the wide ground circle, a dark storm cloud gathering 12 blocks up with turning rings, dust drawn up and sparks, a flash as the storm breaks; the server's storm from the impact tick. `cast_rain.json` (arms to the sky, brought down at tick 14).
+- CURSE 6 / 6 / 0 / 4 / 16: a dark circle turning the wrong way, five crooked fingers of shadow rising from its rim and leaning in, clamping down with a flash at the launch, smoke; the server hexes at the impact tick. `cast_curse.json` (clawed hand, clenched at tick 12). Test `aCurseHexesAtItsImpactTickAndNotBefore`.
+- SANCTUARY instant (4 / 30): the wide circle blooms under the caster, a dome of light rises from its rim with four turning pillars, settles to a faint shell with motes rising. `cast_sanctuary.json` (bow, palm to the ground).
+
+### Group 6 (DASH, BLINK, WARD, RESTORE, BUFF; UTILITY) — 322 plain / 322 with magic mods
+- All instant (the effect at the cast); the show runs around it: DASH (2 / 8) the circle under the arrived caster bursts outward, two rings fly back the way they came, `cast_dash.json` (lean); BLINK (1 / 6) the circle collapses inward with a flash and portal motes, `cast_blink.json`; WARD (2 / 20) a shell blooms over the caster with a band of runes rising to the chest, `cast_ward.json` (palms out); RESTORE (2 / 20) a glow gathers at the chest, motes climb in a double helix, `cast_restore.json` (hands to the chest, opened); BUFF (2 / 20) three bands shoot up the body with a flash over the crown, `cast_buff.json` (fists to the chest, arms flexed out). UTILITY keeps the generic circle and `cast_generic`.
+- Test `aDashStrikesAtTheCastTickAndTheSelfKindsHaveTheirShows`.
+
+### Group 7 (the volley, caps, docs) — 323 plain / 323 with magic mods
+- The volley itself (circles first, launches in sequence, echo waves, scatter, convergence) landed with the follow-ups (B0.8 overrides group 7 where they differ) and is used by every kind. Group 7 adds the stress test `anEightByTwentyFourVolleyFiresWithinTheCapAndThrowsNothing` (24 rays × 9 waves through `SpellEffects.resolve`, scheduled as `SpellCaster` does: 216 rays within the 60-tick cap, no pending task left, nothing thrown, one packet), the protocol bump to 23, the version 4.0.0, README / ROADMAP / roadmap_doc.
+- Client caps: `SpellCircleRenderer.MAX_CASTS` 32, `MAX_INSTANCES_DRAWN` 48 per cast and frame, `MAX_PARTICLE_INSTANCES` 12 per cast and tick; `SpellFxRenderer.MAX_ACTIVE` 160.
+
+### Real-window check (Session B, done; see the 4.0.0 report)
+- Driven from PowerShell (`verify-tools\game-driver.ps1`, now with `Crop` and `Frames`; `verify-tools\run-tests.ps1 plain|magic` runs a suite and prints the verdict). The dev client (`runClient`, Iron's / Ars / Mahou from libs/) in the AltarCheck world, window maximized to 1920x991, GUI scale 2; a stone arena at y 140 in the sky with NoAI husks. run/options.txt (the dev keys were rebound to K / N / U / ] / [ / O for the run), run/config and run/saves/AltarCheck backed up before and restored byte-identically after (156 files, 0 differences). Pitfall for the next session: `Copy-Item <dir> <existing dir> -Recurse` nests the folder; copy into a path that does not exist yet.
+- Fixes after the frames: a meteor's path is 0.6 × the caster's distance to the spot (8..22 blocks) so the sky circle stays in front of a caster who looks at the target; the rock is capped at 2.6 blocks and its tail at 14 (a Circle-10 rock painted the sky white); the sky circle is at most 0.45 × the path (a Circle-10 circle reached the ground); the nova's ball and the meteor's rock are capped like a glow (0.35 × their distance from the camera) because a Circle-10 ball before the hands filled the first-person view (this last cap was not seen in a window again).
+
+## Next
+- Nothing of the two-session task is left. Ideas for later: a first-person hand motion (none is shown by design); bendy-lib bends if a NeoForge 1.21.1 build appears.
+
+## Left unfinished
+- (nothing)
+
+## Open issues / found but not fixed
+- (see the final report)
+
+## Test counts
+- Part 0: 302 plain. Session A groups: 311 / 312 / 312 / 312. Session B: follow-ups 319, group 4 320, group 5 321, group 6 322, group 7 323 (plain and with the magic mods alike).
+
+## How to verify (same as the task)
+- `.\gradlew.bat --init-script "..\verify-tools\verify.init.gradle" compileJava` (-Werror -Xlint:all)
+- `.\gradlew.bat --init-script "..\verify-tools\verify.init.gradle" -PplainRun runGameTestServer` (PLAIN)
+- `.\gradlew.bat --init-script "..\verify-tools\verify.init.gradle" runGameTestServer` (WITH Iron's / Ars / Mahou)
+- Lang: `$env:PYTHONPATH="..\verify-tools\pilstub"; python tools\gen_lang.py` (Pillow is not installed; the stub only satisfies the import).

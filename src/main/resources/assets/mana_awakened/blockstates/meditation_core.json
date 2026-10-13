@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "tier=0": {
+      "model": "mana_awakened:block/meditation_core"
+    },
+    "tier=1": {
+      "model": "mana_awakened:block/meditation_core_active"
+    },
+    "tier=2": {
+      "model": "mana_awakened:block/meditation_core_active"
+    },
+    "tier=3": {
+      "model": "mana_awakened:block/meditation_core_active"
+    },
+    "tier=4": {
+      "model": "mana_awakened:block/meditation_core_active"
+    },
+    "tier=5": {
+      "model": "mana_awakened:block/meditation_core_active"
+    }
+  }
+}

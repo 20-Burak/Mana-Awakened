@@ -1,0 +1,35 @@
+{
+  "name": "cast_curse",
+  "author": "Mana Awakened",
+  "description": "CURSE, 32 ticks for the base timeline (6 summon, 6 manifest, 0 travel, 4 impact, 16 aftermath): the right arm reaches out at the target with the hand turned into a claw (rolled) while the dark circle opens and the hand of shadow rises, trembles, then clenches and is pulled back at the clamp (tick 12); the head lowers. Arms, torso and head only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 32,
+    "stopTick": 33,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "rightArm": { "pitch": -88.0, "yaw": -8.0, "roll": 60.0 } },
+      { "tick": 9, "easing": "INOUTSINE", "rightArm": { "pitch": -92.0, "yaw": -10.0, "roll": 75.0 } },
+      { "tick": 12, "easing": "INCUBIC", "rightArm": { "pitch": -70.0, "yaw": -22.0, "roll": 90.0 } },
+      { "tick": 18, "easing": "INOUTSINE", "rightArm": { "pitch": -72.0, "yaw": -22.0, "roll": 90.0 } },
+      { "tick": 32, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "leftArm": { "pitch": 12.0, "yaw": 10.0, "roll": -10.0 } },
+      { "tick": 12, "easing": "INCUBIC", "leftArm": { "pitch": 18.0, "yaw": 12.0, "roll": -14.0 } },
+      { "tick": 32, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "torso": { "pitch": 6.0, "yaw": -12.0 } },
+      { "tick": 12, "easing": "INCUBIC", "torso": { "pitch": 10.0, "yaw": -6.0 } },
+      { "tick": 32, "easing": "INSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "head": { "pitch": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "head": { "pitch": 10.0 } },
+      { "tick": 12, "easing": "INCUBIC", "head": { "pitch": 16.0 } },
+      { "tick": 32, "easing": "INSINE", "head": { "pitch": 0.0 } }
+    ]
+  }
+}

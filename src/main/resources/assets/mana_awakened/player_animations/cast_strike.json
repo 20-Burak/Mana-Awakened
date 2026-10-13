@@ -1,0 +1,32 @@
+{
+  "name": "cast_strike",
+  "author": "Mana Awakened",
+  "description": "STRIKE, 27 ticks for the base timeline (8 summon, 6 manifest, 2 travel, 3 impact, 8 aftermath): the right arm swings up and points at the target while the ground circle opens, the fist tightens while the bolt gathers, chops down as it strikes and falls back. Arms and torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 27,
+    "stopTick": 28,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 8, "easing": "OUTCUBIC", "rightArm": { "pitch": -92.0, "yaw": -4.0, "roll": 0.0 } },
+      { "tick": 11, "easing": "INOUTSINE", "rightArm": { "pitch": -96.0, "yaw": -6.0, "roll": 4.0 } },
+      { "tick": 14, "easing": "INOUTSINE", "rightArm": { "pitch": -93.0, "yaw": -4.0, "roll": -3.0 } },
+      { "tick": 16, "easing": "INCUBIC", "rightArm": { "pitch": -60.0, "yaw": -2.0, "roll": 0.0 } },
+      { "tick": 19, "easing": "OUTSINE", "rightArm": { "pitch": -64.0, "yaw": -2.0, "roll": 0.0 } },
+      { "tick": 27, "easing": "INOUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 8, "easing": "OUTCUBIC", "leftArm": { "pitch": 18.0, "yaw": 6.0, "roll": -6.0 } },
+      { "tick": 16, "easing": "INCUBIC", "leftArm": { "pitch": 10.0, "yaw": 4.0, "roll": -4.0 } },
+      { "tick": 27, "easing": "INOUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } },
+      { "tick": 8, "easing": "OUTCUBIC", "torso": { "pitch": 3.0, "yaw": -14.0 } },
+      { "tick": 16, "easing": "INCUBIC", "torso": { "pitch": 8.0, "yaw": -10.0 } },
+      { "tick": 27, "easing": "INOUTSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } }
+    ]
+  }
+}

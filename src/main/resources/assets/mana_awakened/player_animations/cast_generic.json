@@ -1,0 +1,29 @@
+{
+  "name": "cast_generic",
+  "author": "Mana Awakened",
+  "description": "The shared casting gesture: the right hand comes up open before the chest, pushes forward as the spell leaves, and drops. Arms and a little torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 20,
+    "stopTick": 21,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 5, "easing": "OUTSINE", "rightArm": { "pitch": -70.0, "yaw": -15.0, "roll": 8.0 } },
+      { "tick": 9, "easing": "INOUTSINE", "rightArm": { "pitch": -95.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 14, "easing": "INOUTSINE", "rightArm": { "pitch": -85.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 20, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 5, "easing": "OUTSINE", "leftArm": { "pitch": -30.0, "yaw": 10.0, "roll": -8.0 } },
+      { "tick": 14, "easing": "INOUTSINE", "leftArm": { "pitch": -25.0, "yaw": 10.0, "roll": -8.0 } },
+      { "tick": 20, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } },
+      { "tick": 9, "easing": "INOUTSINE", "torso": { "pitch": 4.0, "yaw": -6.0 } },
+      { "tick": 20, "easing": "INSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } }
+    ]
+  }
+}

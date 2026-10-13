@@ -1,0 +1,25 @@
+{
+  "name": "meditation_loop",
+  "author": "Mana Awakened",
+  "description": "Holds the lotus pose and breathes: one slow breath every 4 s (the chest leans a little and the shoulders rise).",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 80,
+    "isLoop": true,
+    "returnTick": 0,
+    "degrees": true,
+    "moves": [
+      { "tick": 0, "easing": "INOUTSINE", "body": { "y": -0.62 } },
+      { "tick": 40, "easing": "INOUTSINE", "body": { "y": -0.605 } },
+      { "tick": 0, "easing": "INOUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "torso": { "pitch": 3.0 } },
+      { "tick": 0, "easing": "INOUTSINE", "rightLeg": { "pitch": -90.0, "yaw": -28.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "INOUTSINE", "leftLeg": { "pitch": -86.0, "yaw": 28.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "INOUTSINE", "rightArm": { "pitch": -36.0, "yaw": 0.0, "roll": 12.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "rightArm": { "pitch": -33.0, "roll": 13.0 } },
+      { "tick": 0, "easing": "INOUTSINE", "leftArm": { "pitch": -36.0, "yaw": 0.0, "roll": -12.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "leftArm": { "pitch": -33.0, "roll": -13.0 } }
+    ]
+  }
+}

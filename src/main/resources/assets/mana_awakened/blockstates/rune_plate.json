@@ -1,0 +1,100 @@
+{
+  "variants": {
+    "east=false,formed=false,north=false,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_0"
+    },
+    "east=false,formed=true,north=false,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_f0"
+    },
+    "east=false,formed=false,north=true,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_1"
+    },
+    "east=false,formed=true,north=true,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_f1"
+    },
+    "east=true,formed=false,north=false,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_2"
+    },
+    "east=true,formed=true,north=false,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_f2"
+    },
+    "east=true,formed=false,north=true,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_3"
+    },
+    "east=true,formed=true,north=true,south=false,west=false": {
+      "model": "mana_awakened:block/rune_plate_f3"
+    },
+    "east=false,formed=false,north=false,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_4"
+    },
+    "east=false,formed=true,north=false,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_f4"
+    },
+    "east=false,formed=false,north=true,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_5"
+    },
+    "east=false,formed=true,north=true,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_f5"
+    },
+    "east=true,formed=false,north=false,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_6"
+    },
+    "east=true,formed=true,north=false,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_f6"
+    },
+    "east=true,formed=false,north=true,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_7"
+    },
+    "east=true,formed=true,north=true,south=true,west=false": {
+      "model": "mana_awakened:block/rune_plate_f7"
+    },
+    "east=false,formed=false,north=false,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_8"
+    },
+    "east=false,formed=true,north=false,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_f8"
+    },
+    "east=false,formed=false,north=true,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_9"
+    },
+    "east=false,formed=true,north=true,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_f9"
+    },
+    "east=true,formed=false,north=false,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_10"
+    },
+    "east=true,formed=true,north=false,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_f10"
+    },
+    "east=true,formed=false,north=true,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_11"
+    },
+    "east=true,formed=true,north=true,south=false,west=true": {
+      "model": "mana_awakened:block/rune_plate_f11"
+    },
+    "east=false,formed=false,north=false,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_12"
+    },
+    "east=false,formed=true,north=false,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_f12"
+    },
+    "east=false,formed=false,north=true,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_13"
+    },
+    "east=false,formed=true,north=true,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_f13"
+    },
+    "east=true,formed=false,north=false,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_14"
+    },
+    "east=true,formed=true,north=false,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_f14"
+    },
+    "east=true,formed=false,north=true,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_15"
+    },
+    "east=true,formed=true,north=true,south=true,west=true": {
+      "model": "mana_awakened:block/rune_plate_f15"
+    }
+  }
+}

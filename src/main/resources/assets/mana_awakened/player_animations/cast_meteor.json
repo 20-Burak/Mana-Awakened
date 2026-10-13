@@ -1,0 +1,43 @@
+{
+  "name": "cast_meteor",
+  "author": "Mana Awakened",
+  "description": "METEOR, 74 ticks for the base timeline (16 summon, 10 manifest, 14 travel, 4 impact, 30 aftermath): both arms rise to the sky while the circle opens, tremble while the rock forms, hold through the fall, are pulled down hard at the impact and sink while the crater glows. Arms and torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 74,
+    "stopTick": 75,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 16, "easing": "OUTCUBIC", "rightArm": { "pitch": -165.0, "yaw": 0.0, "roll": 18.0 } },
+      { "tick": 21, "easing": "INOUTSINE", "rightArm": { "pitch": -172.0, "yaw": 0.0, "roll": 22.0 } },
+      { "tick": 26, "easing": "INOUTSINE", "rightArm": { "pitch": -168.0, "yaw": 0.0, "roll": 16.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "rightArm": { "pitch": -170.0, "yaw": 0.0, "roll": 18.0 } },
+      { "tick": 44, "easing": "INCUBIC", "rightArm": { "pitch": -40.0, "yaw": 0.0, "roll": 10.0 } },
+      { "tick": 56, "easing": "OUTSINE", "rightArm": { "pitch": -25.0, "yaw": 0.0, "roll": 8.0 } },
+      { "tick": 74, "easing": "INOUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 16, "easing": "OUTCUBIC", "leftArm": { "pitch": -165.0, "yaw": 0.0, "roll": -18.0 } },
+      { "tick": 21, "easing": "INOUTSINE", "leftArm": { "pitch": -172.0, "yaw": 0.0, "roll": -22.0 } },
+      { "tick": 26, "easing": "INOUTSINE", "leftArm": { "pitch": -168.0, "yaw": 0.0, "roll": -16.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "leftArm": { "pitch": -170.0, "yaw": 0.0, "roll": -18.0 } },
+      { "tick": 44, "easing": "INCUBIC", "leftArm": { "pitch": -40.0, "yaw": 0.0, "roll": -10.0 } },
+      { "tick": 56, "easing": "OUTSINE", "leftArm": { "pitch": -25.0, "yaw": 0.0, "roll": -8.0 } },
+      { "tick": 74, "easing": "INOUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 16, "easing": "OUTCUBIC", "torso": { "pitch": -8.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "torso": { "pitch": -9.0 } },
+      { "tick": 44, "easing": "INCUBIC", "torso": { "pitch": 10.0 } },
+      { "tick": 74, "easing": "INOUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "head": { "pitch": 0.0 } },
+      { "tick": 16, "easing": "OUTCUBIC", "head": { "pitch": -20.0 } },
+      { "tick": 40, "easing": "INOUTSINE", "head": { "pitch": -22.0 } },
+      { "tick": 44, "easing": "INCUBIC", "head": { "pitch": 6.0 } },
+      { "tick": 74, "easing": "INOUTSINE", "head": { "pitch": 0.0 } }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "cast_cone",
+  "author": "Mana Awakened",
+  "description": "CONE, 17 ticks for the base timeline (4 summon, 3 manifest, 0 travel, 2 impact, 8 aftermath): the right hand comes up palm out before the face while the small circle opens, the fingers spread as the element gathers, the arm locks straight at the launch (tick 7) and holds while the cone roars, then drops. Right arm, a little torso.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 17,
+    "stopTick": 18,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 4, "easing": "OUTCUBIC", "rightArm": { "pitch": -75.0, "yaw": -12.0, "roll": 10.0 } },
+      { "tick": 7, "easing": "OUTCUBIC", "rightArm": { "pitch": -92.0, "yaw": -4.0, "roll": 0.0 } },
+      { "tick": 12, "easing": "INOUTSINE", "rightArm": { "pitch": -90.0, "yaw": -4.0, "roll": 0.0 } },
+      { "tick": 17, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 7, "easing": "OUTCUBIC", "leftArm": { "pitch": 14.0, "yaw": 6.0, "roll": -8.0 } },
+      { "tick": 17, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } },
+      { "tick": 7, "easing": "OUTCUBIC", "torso": { "pitch": 4.0, "yaw": -8.0 } },
+      { "tick": 17, "easing": "INSINE", "torso": { "pitch": 0.0, "yaw": 0.0 } }
+    ]
+  }
+}

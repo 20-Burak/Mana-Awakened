@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "RAR",
+    "ADA",
+    "RAR"
+  ],
+  "key": {
+    "R": {
+      "item": "mana_awakened:rune_plate"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "mana_awakened:meditation_core",
+    "count": 1
+  }
+}

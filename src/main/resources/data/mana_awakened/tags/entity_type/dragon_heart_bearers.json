@@ -1,0 +1,8 @@
+{
+  "values": [
+    "minecraft:ender_dragon",
+    { "id": "twilightforest:hydra", "required": false },
+    { "id": "cataclysm:ignis", "required": false },
+    { "id": "cataclysm:ender_golem", "required": false }
+  ]
+}

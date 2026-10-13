@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mana_awakened:block/inscription_altar"
+    },
+    "facing=east": {
+      "model": "mana_awakened:block/inscription_altar",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "mana_awakened:block/inscription_altar",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "mana_awakened:block/inscription_altar",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:crops",
+    "#minecraft:saplings",
+    "minecraft:nether_wart",
+    "minecraft:cocoa",
+    "minecraft:sweet_berry_bush",
+    "minecraft:sugar_cane",
+    "minecraft:cactus",
+    "minecraft:bamboo",
+    "minecraft:bamboo_sapling",
+    "minecraft:kelp",
+    "minecraft:chorus_flower",
+    "minecraft:torchflower_crop",
+    "minecraft:pitcher_crop"
+  ]
+}

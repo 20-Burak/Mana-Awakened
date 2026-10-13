@@ -1,0 +1,26 @@
+{
+  "name": "cast_blink",
+  "author": "Mana Awakened",
+  "description": "BLINK, 7 ticks for the base timeline (instant: 1 impact, 6 aftermath): a short lean, the arms out a little for balance as the caster appears, then upright. Arms and torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 7,
+    "stopTick": 8,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTCUBIC", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 1, "easing": "OUTCUBIC", "rightArm": { "pitch": -20.0, "yaw": 0.0, "roll": -25.0 } },
+      { "tick": 7, "easing": "INOUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 1, "easing": "OUTCUBIC", "leftArm": { "pitch": -20.0, "yaw": 0.0, "roll": 25.0 } },
+      { "tick": 7, "easing": "INOUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "torso": { "pitch": 0.0 } },
+      { "tick": 1, "easing": "OUTCUBIC", "torso": { "pitch": 10.0 } },
+      { "tick": 7, "easing": "INOUTSINE", "torso": { "pitch": 0.0 } }
+    ]
+  }
+}

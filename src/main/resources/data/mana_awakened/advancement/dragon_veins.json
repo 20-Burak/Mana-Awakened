@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "mana_awakened:primordial_dragon_heart"
+    },
+    "title": {
+      "translate": "advancements.mana_awakened.dragon_veins.title"
+    },
+    "description": {
+      "translate": "advancements.mana_awakened.dragon_veins.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reached": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "mana_awakened:circle_7"
+}

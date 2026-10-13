@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "mana_awakened:block/rune_plate_top_5",
+    "side": "mana_awakened:block/rune_plate_side",
+    "bottom": "mana_awakened:block/rune_plate_side"
+  }
+}

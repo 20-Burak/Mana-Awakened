@@ -1,0 +1,40 @@
+{
+  "name": "cast_nova",
+  "author": "Mana Awakened",
+  "description": "NOVA, 34 ticks for the base timeline (6 summon, 4 manifest, 8 travel, 4 impact, 12 aftermath): the arms cross over the chest while the circle opens, tremble as the ball forms, are flung out wide at the launch (tick 10), hold open through the flight, drop with the burst. Arms, torso and head only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 34,
+    "stopTick": 35,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "rightArm": { "pitch": -70.0, "yaw": -40.0, "roll": -20.0 } },
+      { "tick": 8, "easing": "INOUTSINE", "rightArm": { "pitch": -74.0, "yaw": -44.0, "roll": -24.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "rightArm": { "pitch": -85.0, "yaw": 55.0, "roll": 30.0 } },
+      { "tick": 18, "easing": "INOUTSINE", "rightArm": { "pitch": -80.0, "yaw": 50.0, "roll": 28.0 } },
+      { "tick": 22, "easing": "INOUTSINE", "rightArm": { "pitch": -70.0, "yaw": 40.0, "roll": 20.0 } },
+      { "tick": 34, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "leftArm": { "pitch": -70.0, "yaw": 40.0, "roll": 20.0 } },
+      { "tick": 8, "easing": "INOUTSINE", "leftArm": { "pitch": -74.0, "yaw": 44.0, "roll": 24.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "leftArm": { "pitch": -85.0, "yaw": -55.0, "roll": -30.0 } },
+      { "tick": 18, "easing": "INOUTSINE", "leftArm": { "pitch": -80.0, "yaw": -50.0, "roll": -28.0 } },
+      { "tick": 22, "easing": "INOUTSINE", "leftArm": { "pitch": -70.0, "yaw": -40.0, "roll": -20.0 } },
+      { "tick": 34, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "torso": { "pitch": -6.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "torso": { "pitch": 8.0 } },
+      { "tick": 22, "easing": "INOUTSINE", "torso": { "pitch": 3.0 } },
+      { "tick": 34, "easing": "INSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "head": { "pitch": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "head": { "pitch": 8.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "head": { "pitch": -4.0 } },
+      { "tick": 34, "easing": "INSINE", "head": { "pitch": 0.0 } }
+    ]
+  }
+}

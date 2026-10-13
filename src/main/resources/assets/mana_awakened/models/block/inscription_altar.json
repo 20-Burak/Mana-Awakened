@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "mana_awakened:block/altar_side",
+    "top": "mana_awakened:block/altar_top",
+    "side": "mana_awakened:block/altar_side",
+    "leg": "mana_awakened:block/altar_leg"
+  },
+  "elements": [
+    {
+      "from": [0, 12, 0], "to": [16, 16, 16],
+      "faces": {
+        "up": { "texture": "#top", "cullface": "up" },
+        "down": { "texture": "#side" },
+        "north": { "texture": "#side", "uv": [0, 0, 16, 4] },
+        "south": { "texture": "#side", "uv": [0, 0, 16, 4] },
+        "east": { "texture": "#side", "uv": [0, 0, 16, 4] },
+        "west": { "texture": "#side", "uv": [0, 0, 16, 4] }
+      }
+    },
+    { "from": [1, 0, 1], "to": [4, 12, 4], "faces": { "north": { "texture": "#leg" }, "south": { "texture": "#leg" }, "east": { "texture": "#leg" }, "west": { "texture": "#leg" }, "down": { "texture": "#leg", "cullface": "down" } } },
+    { "from": [12, 0, 1], "to": [15, 12, 4], "faces": { "north": { "texture": "#leg" }, "south": { "texture": "#leg" }, "east": { "texture": "#leg" }, "west": { "texture": "#leg" }, "down": { "texture": "#leg", "cullface": "down" } } },
+    { "from": [1, 0, 12], "to": [4, 12, 15], "faces": { "north": { "texture": "#leg" }, "south": { "texture": "#leg" }, "east": { "texture": "#leg" }, "west": { "texture": "#leg" }, "down": { "texture": "#leg", "cullface": "down" } } },
+    { "from": [12, 0, 12], "to": [15, 12, 15], "faces": { "north": { "texture": "#leg" }, "south": { "texture": "#leg" }, "east": { "texture": "#leg" }, "west": { "texture": "#leg" }, "down": { "texture": "#leg", "cullface": "down" } } },
+    { "from": [3, 8, 3], "to": [13, 11, 13], "faces": { "north": { "texture": "#side", "uv": [0, 5, 10, 8] }, "south": { "texture": "#side", "uv": [0, 5, 10, 8] }, "east": { "texture": "#side", "uv": [0, 5, 10, 8] }, "west": { "texture": "#side", "uv": [0, 5, 10, 8] }, "up": { "texture": "#side", "uv": [3, 3, 13, 13] }, "down": { "texture": "#side", "uv": [3, 3, 13, 13] } } }
+  ]
+}

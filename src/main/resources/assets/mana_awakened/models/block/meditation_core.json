@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "mana_awakened:block/meditation_core_top",
+    "side": "mana_awakened:block/meditation_core_side",
+    "bottom": "mana_awakened:block/meditation_core_side"
+  }
+}

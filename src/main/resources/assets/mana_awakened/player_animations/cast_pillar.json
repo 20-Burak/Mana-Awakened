@@ -1,0 +1,36 @@
+{
+  "name": "cast_pillar",
+  "author": "Mana Awakened",
+  "description": "PILLAR, 28 ticks for the base timeline (6 summon, 6 manifest, 0 travel, 4 impact, 12 aftermath): the right arm rises straight up with the fist closed while the ground circle opens, shakes as the shaft of light sinks, slams down to the ground at the eruption (tick 12) with the torso bowing, then straightens. Arms, torso and head only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 28,
+    "stopTick": 29,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "rightArm": { "pitch": -170.0, "yaw": -6.0, "roll": 10.0 } },
+      { "tick": 9, "easing": "INOUTSINE", "rightArm": { "pitch": -174.0, "yaw": -9.0, "roll": 13.0 } },
+      { "tick": 12, "easing": "INCUBIC", "rightArm": { "pitch": -30.0, "yaw": -4.0, "roll": 0.0 } },
+      { "tick": 15, "easing": "OUTSINE", "rightArm": { "pitch": -34.0, "yaw": -4.0, "roll": 0.0 } },
+      { "tick": 28, "easing": "INOUTSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "leftArm": { "pitch": 20.0, "yaw": 8.0, "roll": -10.0 } },
+      { "tick": 12, "easing": "INCUBIC", "leftArm": { "pitch": -20.0, "yaw": 6.0, "roll": -4.0 } },
+      { "tick": 28, "easing": "INOUTSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "torso": { "pitch": -6.0 } },
+      { "tick": 12, "easing": "INCUBIC", "torso": { "pitch": 16.0 } },
+      { "tick": 16, "easing": "OUTSINE", "torso": { "pitch": 12.0 } },
+      { "tick": 28, "easing": "INOUTSINE", "torso": { "pitch": 0.0 } },
+      { "tick": 0, "easing": "OUTSINE", "head": { "pitch": 0.0 } },
+      { "tick": 6, "easing": "OUTCUBIC", "head": { "pitch": -10.0 } },
+      { "tick": 12, "easing": "INCUBIC", "head": { "pitch": 12.0 } },
+      { "tick": 28, "easing": "INOUTSINE", "head": { "pitch": 0.0 } }
+    ]
+  }
+}

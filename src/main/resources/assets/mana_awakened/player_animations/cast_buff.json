@@ -1,0 +1,31 @@
+{
+  "name": "cast_buff",
+  "author": "Mana Awakened",
+  "description": "BUFF, 22 ticks for the base timeline (instant: 2 impact, 20 aftermath): both fists come to the chest as the bands shoot up (tick 2), then the arms flex out and up, elbows wide, as the last band clears the crown (tick 10), hold, and lower. Arms and torso only.",
+  "version": 3,
+  "emote": {
+    "beginTick": 0,
+    "endTick": 22,
+    "stopTick": 23,
+    "isLoop": false,
+    "returnTick": 0,
+    "degrees": true,
+    "easeBeforeKeyframe": true,
+    "moves": [
+      { "tick": 0, "easing": "OUTCUBIC", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "rightArm": { "pitch": -70.0, "yaw": -40.0, "roll": -20.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "rightArm": { "pitch": -120.0, "yaw": 0.0, "roll": -70.0 } },
+      { "tick": 16, "easing": "INOUTSINE", "rightArm": { "pitch": -118.0, "yaw": 0.0, "roll": -68.0 } },
+      { "tick": 22, "easing": "INSINE", "rightArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "leftArm": { "pitch": -70.0, "yaw": 40.0, "roll": 20.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "leftArm": { "pitch": -120.0, "yaw": 0.0, "roll": 70.0 } },
+      { "tick": 16, "easing": "INOUTSINE", "leftArm": { "pitch": -118.0, "yaw": 0.0, "roll": 68.0 } },
+      { "tick": 22, "easing": "INSINE", "leftArm": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 } },
+      { "tick": 0, "easing": "OUTCUBIC", "torso": { "pitch": 0.0 } },
+      { "tick": 2, "easing": "OUTCUBIC", "torso": { "pitch": 4.0 } },
+      { "tick": 10, "easing": "OUTCUBIC", "torso": { "pitch": -6.0 } },
+      { "tick": 22, "easing": "INSINE", "torso": { "pitch": 0.0 } }
+    ]
+  }
+}
