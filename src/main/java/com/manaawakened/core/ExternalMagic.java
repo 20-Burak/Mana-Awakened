@@ -77,6 +77,38 @@ public final class ExternalMagic {
         return Math.max(1.0, Math.min(Math.max(1.0, cap), total));
     }
 
+    /**
+     * Whether a core holding {@code mana} can pay {@code cost} in full (1.0.2): the one test every external cast and spend goes
+     * through. It allows a rounding error of a millionth of a mana (for huge costs a hundred-trillionth of the cost, a tenth of a mana
+     * at ten trillion), never a real shortfall.
+     */
+    public static boolean affords(double mana, double cost) {
+        if (!(cost > 0.0)) {
+            return true;
+        }
+        return Double.isFinite(mana) && Double.isFinite(cost) && mana + Math.max(1.0E-6, cost * 1.0E-14) >= cost;
+    }
+
+    /**
+     * The most whole units of another mod's mana a core holding {@code mana} can pay at {@code multiplier} core mana each (1.0.2): the
+     * largest n with {@link #affords}(mana, n x multiplier). This is what the mod is shown, so its own "enough mana?" check in its own
+     * units agrees exactly with ours, and whatever it then takes the core can always pay in full.
+     */
+    public static long affordableUnits(double mana, double multiplier) {
+        if (!Double.isFinite(mana) || mana <= 0.0) {
+            return 0L;
+        }
+        double each = Double.isFinite(multiplier) ? Math.max(1.0, multiplier) : 1.0;
+        long units = (long) Math.floor(mana / each);
+        while (units < Long.MAX_VALUE && affords(mana, (units + 1L) * each)) {
+            units++;
+        }
+        while (units > 0L && !affords(mana, units * each)) {
+            units--;
+        }
+        return units;
+    }
+
     /** The cost exponent the config sets for {@code modId}; 0 (no scaling) for a mod it does not know. */
     public static double alpha(String modId) {
         ManaConfig.Server c = ManaConfig.SERVER;

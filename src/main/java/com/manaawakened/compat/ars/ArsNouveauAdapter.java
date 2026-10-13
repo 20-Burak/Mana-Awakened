@@ -39,11 +39,14 @@ import net.neoforged.neoforge.common.NeoForge;
  * Ars Nouveau 5.8.2 to 5.13.3 have every symbol with the same signature.
  *
  * <p>Big cores (1.0.1): Ars keeps its mana as a {@code double} (exact) but its maximum as an {@code int}, so it is shown at most
- * 2,147,483,647 of the core; spends inside that are read exactly. A scaled cost above that number is checked as that number.
+ * {@link #MOST_SHOWN} of the core; spends inside that are read exactly. 1.0.2: one less than the largest int, so that a scaled
+ * cost the core cannot pay, checked as at most the largest int, is always more than Ars holds ({@link #checkedCost}).
  */
 public final class ArsNouveauAdapter implements MagicAdapter {
     public static final String MOD_ID = ExternalMagic.ARS;
     private static final double EPSILON = 0.001;
+    /** The most mana Ars is shown: one less than the largest cost it can be asked for. */
+    static final double MOST_SHOWN = Integer.MAX_VALUE - 1.0;
 
     private static final String PKG = "com.hollingsworth.arsnouveau.";
     private static final String CAP = PKG + "common.capability.ManaCap";
@@ -143,7 +146,9 @@ public final class ArsNouveauAdapter implements MagicAdapter {
 
     /**
      * The cost Ars checks a cast against: scaled like the spend will be, on both sides (the client's copy of the core has the same
-     * capacity, so Ars's own cost display, where it uses this event, agrees with what is paid).
+     * capacity, so Ars's own cost display, where it uses this event, agrees with what is paid). Ars makes this check before anything
+     * else of a cast and refuses on its own (its chat line); on the server a refused cultivator also gets the red "not enough mana"
+     * line with the scaled cost.
      */
     private static final class CostCheckListener {
         @SubscribeEvent
@@ -151,11 +156,28 @@ public final class ArsNouveauAdapter implements MagicAdapter {
             if (event.context != null && event.context.getUnwrappedCaster() instanceof Player player && enabled()) {
                 ManaData data = player.getData(AttachmentRegistries.MANA_DATA);
                 if (!data.isTranscendent()) {
-                    double scaled = Math.ceil(event.currentCost * ExternalMagic.costMultiplier(data, MOD_ID));
-                    event.currentCost = (int) Math.min(Integer.MAX_VALUE, scaled);
+                    double cost = event.currentCost * ExternalMagic.costMultiplier(data, MOD_ID);
+                    event.currentCost = checkedCost(data.mana(), cost);
+                    if (player instanceof ServerPlayer server && !ExternalMagic.affords(data.mana(), cost)) {
+                        MagicAdapters.refuse(server, cost);
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * The whole number Ars compares with its mana (the core's, as a double, at most {@link #MOST_SHOWN}) for a scaled cost
+     * {@code cost} (1.0.2): it passes exactly when the core can pay the cost in full. The cost rounded up, except that a core holding
+     * the cost but less than the next whole number (a cost of 1,234.4 and a core of 1,234.6) is asked for no more than it holds; a
+     * core short of the cost is asked for the cost rounded up (at most the largest int), which is more than Ars holds.
+     */
+    static int checkedCost(double mana, double cost) {
+        double whole = Math.ceil(cost);
+        if (ExternalMagic.affords(mana, cost)) {
+            whole = Math.min(whole, Math.min(Math.floor(mana), MOST_SHOWN));
+        }
+        return (int) Math.max(0.0, Math.min(Integer.MAX_VALUE, whole));
     }
 
     private static final class FreeCastListener {
@@ -220,8 +242,9 @@ public final class ArsNouveauAdapter implements MagicAdapter {
         if (cap.getMaxMana() != max) {
             cap.setMaxMana(max);
         }
-        if (Math.abs(cap.getCurrentMana() - data.mana()) > EPSILON) {
-            cap.setMana(data.mana());
+        double shown = Math.min(data.mana(), MOST_SHOWN);
+        if (Math.abs(cap.getCurrentMana() - shown) > EPSILON) {
+            cap.setMana(shown);
         }
         mirrored.put(player.getUUID(), cap.getCurrentMana());
     }
