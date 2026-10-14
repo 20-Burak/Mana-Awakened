@@ -9,6 +9,7 @@ import com.manaawakened.block.ManaCondenserBlockEntity;
 import com.manaawakened.block.MeditationCoreBlock;
 import com.manaawakened.block.RunePlateBlock;
 import com.manaawakened.item.CodexItem;
+import com.manaawakened.entity.FloatingDragonHeart;
 import com.manaawakened.item.DragonHeartItem;
 import com.manaawakened.item.PassiveScrollItem;
 import com.manaawakened.passive.Passive;
@@ -25,6 +26,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -44,6 +46,7 @@ public final class ModRegistries {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ManaAwakened.MOD_ID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ManaAwakened.MOD_ID);
     public static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, ManaAwakened.MOD_ID);
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE, ManaAwakened.MOD_ID);
 
     /** Visual marker for a fractured core. The real state lives in {@link com.manaawakened.core.ManaData}. */
     public static final DeferredHolder<MobEffect, CoreFractureEffect> CORE_FRACTURE = MOB_EFFECTS.register("core_fracture", CoreFractureEffect::new);
@@ -53,6 +56,10 @@ public final class ModRegistries {
 
     /** Dropped by dragons; absorbed through meditation to reforge the body. */
     public static final DeferredItem<DragonHeartItem> PRIMORDIAL_DRAGON_HEART = ITEMS.register("primordial_dragon_heart", DragonHeartItem::new);
+    /** The heart a slain Ender Dragon leaves floating above its exit portal (1.0.3, {@link FloatingDragonHeart}). */
+    public static final DeferredHolder<EntityType<?>, EntityType<FloatingDragonHeart>> FLOATING_DRAGON_HEART = ENTITY_TYPES.register("floating_dragon_heart",
+            () -> EntityType.Builder.<FloatingDragonHeart>of(FloatingDragonHeart::new, MobCategory.MISC).sized(0.5F, 0.5F).fireImmune()
+                    .clientTrackingRange(10).updateInterval(20).build("floating_dragon_heart"));
 
     /**
      * The sculk-veined channels of a Warden: a body-refinement material (item tag {@code mana_awakened:refinement/warden_meridians}).
@@ -135,6 +142,7 @@ public final class ModRegistries {
         CREATIVE_TABS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
         DATA_COMPONENTS.register(modBus);
+        ENTITY_TYPES.register(modBus);
         AttachmentRegistries.ATTACHMENT_TYPES.register(modBus);
     }
 }

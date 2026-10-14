@@ -94,6 +94,8 @@ GLYPHS_EN = ['Flame', 'Tide', 'Stone', 'Gale', 'Frost', 'Storm', 'Bloom', 'Shade
 GLYPHS_TR = ['Alev', 'Gelgit', 'Taş', 'Rüzgâr', 'Don', 'Yıldırım', 'Filiz', 'Gölge', 'Işık']
 
 EN = {
+    'entity.mana_awakened.floating_dragon_heart': 'Primordial Dragon Heart',
+    'entity.mana_awakened.floating_dragon_heart.count': '×%s',
     'mana_awakened.hud.ambient': 'Ambient x%s',
     'mana_awakened.hud.circle_tier': 'Formation tier %s',
     'mana_awakened.number.million': '%sM',
@@ -454,6 +456,8 @@ EN = {
 }
 
 TR = {
+    'entity.mana_awakened.floating_dragon_heart': 'İlksel Ejder Kalbi',
+    'entity.mana_awakened.floating_dragon_heart.count': '×%s',
     'mana_awakened.hud.ambient': 'Ortam x%s',
     'mana_awakened.hud.circle_tier': 'Dizilim kademesi %s',
     'mana_awakened.number.million': '%sMn',

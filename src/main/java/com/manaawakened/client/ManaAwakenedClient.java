@@ -26,6 +26,8 @@ import net.neoforged.neoforge.common.NeoForge;
 public final class ManaAwakenedClient {
     public ManaAwakenedClient(IEventBus modBus, ModContainer container) {
         modBus.addListener(ModKeyMappings::onRegisterKeyMappings);
+        modBus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) -> event.registerEntityRenderer(
+                com.manaawakened.registry.ModRegistries.FLOATING_DRAGON_HEART.get(), com.manaawakened.client.fx.FloatingDragonHeartRenderer::new));
         modBus.addListener(ManaReadoutLayer::onRegisterGuiLayers);
         modBus.addListener(ManaHeartLayer::onRegisterGuiLayers);
         modBus.addListener(TemperedBarsLayer::onRegisterGuiLayers);

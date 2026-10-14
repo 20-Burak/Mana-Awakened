@@ -904,6 +904,8 @@
   "mana_awakened.configuration.thresholdFactor": "Threshold factor (next threshold = this × your core)",
   "mana_awakened.configuration.fullTrainingFactor": "Full-training bonus (b)",
   "mana_awakened.configuration.externalCostScale": "Cost scale of other mods' spells",
+  "entity.mana_awakened.floating_dragon_heart": "Primordial Dragon Heart",
+  "entity.mana_awakened.floating_dragon_heart.count": "×%s",
   "sigil.mana_awakened.mana_bolt": "Mana Bolt",
   "sigil.mana_awakened.mana_bolt.desc": "A bolt of pure mana that strikes the first foe in your sight.",
   "sigil.mana_awakened.ember": "Ember",

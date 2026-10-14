@@ -7,26 +7,21 @@ import com.manaawakened.core.VesselTier;
 import com.manaawakened.network.ModNetwork;
 import com.manaawakened.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * Everything about the body's capacity for mana: dragon-heart drops, the heart's absorption ritual,
+ * Everything about the body's capacity for mana: the dragon heart's absorption ritual (where a heart drops: {@link DragonHeartDrops}),
  * and the permanent rewards of a reforged vessel (extra health, fire immunity). Other rare materials are
  * absorbed through {@link RefinementHandler}, which this class hands the ritual to when no heart is held.
  *
@@ -37,32 +32,6 @@ public final class VesselStrainHandler {
     public static final ResourceLocation HEALTH_MODIFIER_ID = ManaAwakened.id("dragon_vessel_health");
 
     private VesselStrainHandler() {
-    }
-
-    // ------------------------------------------------------------------ drops
-
-    public static void onLivingDrops(LivingDropsEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (!entity.getType().is(ModRegistries.DRAGON_HEART_BEARERS)) {
-            return;
-        }
-        if (entity.getRandom().nextDouble() >= ManaConfig.SERVER.heartDropChance.get()) {
-            return;
-        }
-        double x = entity.getX();
-        double y = entity.getY() + 1.0;
-        double z = entity.getZ();
-        // The Ender Dragon dies high in the air; its heart lands on the exit portal instead.
-        if (entity instanceof EnderDragon dragon && dragon.getFightOrigin() != null) {
-            BlockPos origin = dragon.getFightOrigin();
-            x = origin.getX() + 0.5;
-            y = origin.getY() + 3.0;
-            z = origin.getZ() + 0.5;
-        }
-        ItemEntity heart = new ItemEntity(entity.level(), x, y, z, new ItemStack(ModRegistries.PRIMORDIAL_DRAGON_HEART.get()));
-        heart.setDefaultPickUpDelay();
-        heart.setDeltaMovement(0.0, 0.1, 0.0);
-        event.getDrops().add(heart);
     }
 
     // ------------------------------------------------------------------ ritual
