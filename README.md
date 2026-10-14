@@ -2,7 +2,7 @@
 
 Manhwa-style magic cultivation for **Minecraft 1.21.1** on **NeoForge**. Meditate to gather mana, train your core and break through ten Circles, from Mortal to Transcendent Deity. Inscribe your own spells at the Inscription Altar (105 sigils, from fire bolts and meteor volleys to ore sensing and gates to other worlds), each cast with its own magic circles and gestures. Iron's Spells 'n Spellbooks, Ars Nouveau and Mahou Tsukai draw on the same mana pool when they are installed.
 
-**Version 1.0.2** (the first public release was 1.0.0). License: [GPL-3.0](LICENSE). Author: Burak.
+**Version 1.0.3** (the first public release was 1.0.0). License: [GPL-3.0](LICENSE). Author: Burak.
 
 ## Installation
 
@@ -15,7 +15,7 @@ Manhwa-style magic cultivation for **Minecraft 1.21.1** on **NeoForge**. Meditat
 | Optional | Iron's Spells 'n Spellbooks 1.21-3.4.4 or later, Ars Nouveau 5.8.2 or later, Mahou Tsukai 1.21.0-v1.35.12 or later (tested up to Iron's 1.21.1-3.16.3, Ars 5.13.3, Mahou 1.21.1-v1.36.28; newer builds are accepted and tried) |
 
 1. Install NeoForge for Minecraft 1.21.1.
-2. Put `mana_awakened-1.0.2.jar` and a Player Animator 2.x jar into the `mods` folder. A pack with Iron's Spells already has Player Animator (Iron's needs it too); keep only one copy.
+2. Put `mana_awakened-1.0.3.jar` and a Player Animator 2.x jar into the `mods` folder. A pack with Iron's Spells already has Player Animator (Iron's needs it too); keep only one copy.
 3. On a server, install both on the server as well; every player needs them.
 
 The first start writes `config/mana_awakened-client.toml` and `config/mana_awakened-server.toml`. Nothing else needs setting up: new players get a **Cultivator's Codex** in their inventory, which explains everything in the game.
@@ -135,7 +135,7 @@ Refinements survive death. Data packs can change the materials through the item 
 
 ### Primordial Dragon Heart
 
-The Ender Dragon drops a **Primordial Dragon Heart** (other bosses can be added with the entity tag `mana_awakened:dragon_heart_bearers`). Hold it and meditate for **30 s** without interruption:
+Every Ender Dragon you kill, the first and every respawned one, leaves a **Primordial Dragon Heart**: when its death animation ends and the exit portal opens, the heart appears floating two blocks above the dragon egg's spot on top of the portal's pillar, spinning slowly in a haze of dragon breath. Nothing harms it and it never falls or despawns; walk into it or right-click it to take it (a full inventory drops it at your feet). Hearts nobody has taken yet stack in the one floating heart. Other bosses can be added with the entity tag `mana_awakened:dragon_heart_bearers`: they drop the heart where they die, and it is guarded there (it never despawns, nothing harms it, and if it falls out of the world it comes back to where it dropped). The chance is `dragon_heart.dropChance` (default 1.0). Hold the heart and meditate for **30 s** without interruption:
 
 | Vessel | How | Grants |
 |---|---|---|

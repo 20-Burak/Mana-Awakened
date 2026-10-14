@@ -904,6 +904,8 @@
   "mana_awakened.configuration.thresholdFactor": "Eşik çarpanı (sonraki eşik = bu × çekirdeğin)",
   "mana_awakened.configuration.fullTrainingFactor": "Tam eğitim bonusu (b)",
   "mana_awakened.configuration.externalCostScale": "Diğer modların büyü bedeli ölçeği",
+  "entity.mana_awakened.floating_dragon_heart": "İlksel Ejder Kalbi",
+  "entity.mana_awakened.floating_dragon_heart.count": "×%s",
   "sigil.mana_awakened.mana_bolt": "Mana Oku",
   "sigil.mana_awakened.mana_bolt.desc": "Görüş hattındaki ilk düşmana çarpan saf mana oku.",
   "sigil.mana_awakened.ember": "Kor",

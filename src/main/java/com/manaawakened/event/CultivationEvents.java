@@ -14,6 +14,7 @@ import com.manaawakened.server.Milestones;
 import com.manaawakened.server.RefinementHandler;
 import com.manaawakened.server.SpendFeedback;
 import com.manaawakened.server.TrialHandler;
+import com.manaawakened.server.DragonHeartDrops;
 import com.manaawakened.server.VesselStrainHandler;
 import com.manaawakened.passive.PassiveHandler;
 import com.manaawakened.spell.AltarService;
@@ -50,7 +51,10 @@ public final class CultivationEvents {
         gameBus.addListener(CultivationEvents::onDamaged);
         gameBus.addListener(CultivationEvents::onHeal);
         gameBus.addListener(MeditationHandler::onEntitySize);
-        gameBus.addListener(VesselStrainHandler::onLivingDrops);
+        // The Primordial Dragon Heart: above the exit portal for the Ender Dragon, guarded where it died for other bearers (1.0.3).
+        gameBus.addListener(DragonHeartDrops::onLivingDrops);
+        gameBus.addListener(DragonHeartDrops::onEntityLeave);
+        gameBus.addListener(DragonHeartDrops::onEntityTick);
         gameBus.addListener(RefinementHandler::onLivingDrops);
         gameBus.addListener(ManaCommands::register);
 
